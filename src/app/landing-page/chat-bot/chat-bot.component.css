@@ -15,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(212, 168, 67, 0.4);
+  box-shadow: 0 4px 20px rgba(30, 58, 138, 0.4);
   transition: all var(--transition-base);
   position: absolute;
   bottom: 0;
@@ -24,7 +24,7 @@
 
 .chat-toggle:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 28px rgba(212, 168, 67, 0.5);
+  box-shadow: 0 6px 28px rgba(30, 58, 138, 0.5);
 }
 
 .chat-toggle.open {
@@ -78,7 +78,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@
 }
 
 .message-bot .message-bubble {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-overlay-hover);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   border-bottom-left-radius: 4px;

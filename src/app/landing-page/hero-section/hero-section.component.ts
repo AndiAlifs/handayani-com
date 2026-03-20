@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-hero-section',
@@ -6,4 +7,6 @@ import { Component } from '@angular/core';
   templateUrl: './hero-section.component.html',
   styleUrl: './hero-section.component.css'
 })
-export class HeroSectionComponent {}
+export class HeroSectionComponent {
+  public themeService = inject(ThemeService);
+}

@@ -12,7 +12,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-overlay-light);
   border: 1px solid var(--color-border);
   border-radius: 100px;
   color: var(--color-text-secondary);
@@ -23,16 +23,16 @@
 }
 
 .category-tab:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-overlay-hover);
   border-color: var(--color-border-hover);
   color: var(--color-text);
 }
 
 .category-tab.active {
-  background: rgba(212, 168, 67, 0.12);
+  background: rgba(30, 58, 138, 0.12);
   border-color: var(--color-accent);
   color: var(--color-accent);
-  box-shadow: 0 0 12px rgba(212, 168, 67, 0.15);
+  box-shadow: 0 0 12px rgba(30, 58, 138, 0.15);
 }
 
 .tab-icon {
@@ -62,8 +62,8 @@
 
 .card-badge {
   padding: 0.25rem 0.75rem;
-  background: rgba(212, 168, 67, 0.1);
-  border: 1px solid rgba(212, 168, 67, 0.2);
+  background: rgba(30, 58, 138, 0.1);
+  border: 1px solid rgba(30, 58, 138, 0.2);
   border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 600;

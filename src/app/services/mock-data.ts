@@ -104,7 +104,5 @@ export const MOCK_MECHANISMS: Mechanism[] = [
   { id: 2, requirementName: 'Surat Keterangan Sehat', issuingBody: 'Puskesmas / RS', cost: 50000, notes: 'Berlaku 1 bulan sejak diterbitkan' },
   { id: 3, requirementName: 'Tes Psikologi', issuingBody: 'Lembaga Psikologi Terakreditasi', cost: 150000, notes: 'Wajib untuk SIM A & SIM C' },
   { id: 4, requirementName: 'Formulir Permohonan SIM', issuingBody: 'Satpas / Polres', cost: 100000, notes: 'Bawa KTP asli & fotokopi' },
-  { id: 5, requirementName: 'Ujian Teori SIM', issuingBody: 'Satpas / Polres', cost: 0, notes: 'Minimal skor kelulusan 70%' },
-  { id: 6, requirementName: 'Ujian Praktik SIM', issuingBody: 'Satpas / Polres', cost: 0, notes: 'Tes mengemudi di area uji' },
-  { id: 7, requirementName: 'Biaya Pembuatan SIM A', issuingBody: 'Satpas / Polres', cost: 120000, notes: 'SIM baru, berlaku 5 tahun' },
+  { id: 5, requirementName: 'Biaya PNBP SIM Baru', issuingBody: 'Satpas / Polres', cost: 120000, notes: 'SIM A: Rp120.000 | SIM C: Rp100.000' },
 ];

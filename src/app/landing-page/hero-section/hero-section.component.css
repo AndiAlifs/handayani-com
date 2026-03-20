@@ -103,7 +103,7 @@
 
 .nav-link:hover {
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-overlay-hover);
 }
 
 .nav-link-cta {
@@ -116,6 +116,23 @@
 .nav-link-cta:hover {
   box-shadow: var(--shadow-glow);
   transform: translateY(-1px);
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  color: var(--color-text);
+  border-radius: 50%;
+  margin-left: 0.5rem;
+  background: rgba(148, 163, 184, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(148, 163, 184, 0.2);
+  transform: scale(1.05);
 }
 
 .nav-mobile-toggle {
@@ -152,8 +169,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: rgba(212, 168, 67, 0.1);
-  border: 1px solid rgba(212, 168, 67, 0.2);
+  background: rgba(30, 58, 138, 0.1);
+  border: 1px solid rgba(30, 58, 138, 0.2);
   border-radius: 100px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -207,12 +224,12 @@
   font-size: 1rem;
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
-  box-shadow: 0 4px 16px rgba(212, 168, 67, 0.3);
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212, 168, 67, 0.4);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.4);
 }
 
 .btn-secondary {
@@ -242,7 +259,7 @@
   gap: 2rem;
   margin-top: 4rem;
   padding: 1.5rem 2.5rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-overlay-light);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   backdrop-filter: blur(8px);

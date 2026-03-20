@@ -5,21 +5,23 @@
   --color-primary: #1a365d;
   --color-primary-light: #2a4a7f;
   --color-primary-dark: #0f2440;
-  --color-accent: #d4a843;
-  --color-accent-light: #e8c975;
-  --color-accent-dark: #b8912e;
+  --color-accent: #1e3a8a;
+  --color-accent-light: #3b82f6;
+  --color-accent-dark: #172554;
 
-  /* Neutrals */
-  --color-bg: #0b1120;
-  --color-bg-secondary: #111827;
-  --color-bg-card: #1a2332;
-  --color-bg-card-hover: #1f2b3d;
-  --color-surface: rgba(26, 35, 50, 0.8);
-  --color-text: #f1f5f9;
-  --color-text-secondary: #94a3b8;
+  /* Neutrals (Light Mode Default) */
+  --color-bg: #f8fafc;
+  --color-bg-secondary: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f1f5f9;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
   --color-text-muted: #64748b;
-  --color-border: rgba(148, 163, 184, 0.12);
-  --color-border-hover: rgba(212, 168, 67, 0.3);
+  --color-border: rgba(15, 23, 42, 0.1);
+  --color-border-hover: rgba(30, 58, 138, 0.5);
+  --color-overlay-light: rgba(15, 23, 42, 0.03);
+  --color-overlay-hover: rgba(15, 23, 42, 0.06);
 
   /* Semantic */
   --color-success: #22c55e;
@@ -28,19 +30,19 @@
   --color-danger: #ef4444;
   --color-info: #3b82f6;
 
-  /* Gradients */
+  /* Gradients (Light Mode Default) */
   --gradient-primary: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1a365d 100%);
-  --gradient-accent: linear-gradient(135deg, #d4a843 0%, #e8c975 50%, #d4a843 100%);
-  --gradient-hero: linear-gradient(160deg, #0b1120 0%, #1a365d 40%, #0f2440 70%, #0b1120 100%);
-  --gradient-card: linear-gradient(145deg, rgba(26, 35, 50, 0.9), rgba(15, 36, 64, 0.6));
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  --gradient-accent: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%);
+  --gradient-hero: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 70%, #f8fafc 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(248, 250, 252, 0.6));
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(212, 168, 67, 0.15);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Shadows (Light Mode Default) */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.1);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.1);
+  --shadow-glow: 0 0 20px rgba(30, 58, 138, 0.25);
+  --shadow-card: 0 4px 24px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
   /* Typography */
   --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
@@ -58,6 +60,34 @@
   --transition-fast: 0.15s ease;
   --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  /* Neutrals */
+  --color-bg: #0b1120;
+  --color-bg-secondary: #111827;
+  --color-bg-card: #1a2332;
+  --color-bg-card-hover: #1f2b3d;
+  --color-surface: rgba(26, 35, 50, 0.8);
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-border: rgba(148, 163, 184, 0.12);
+  --color-border-hover: rgba(30, 58, 138, 0.3);
+  --color-overlay-light: rgba(255, 255, 255, 0.03);
+  --color-overlay-hover: rgba(255, 255, 255, 0.06);
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(160deg, #0b1120 0%, #1a365d 40%, #0f2440 70%, #0b1120 100%);
+  --gradient-card: linear-gradient(145deg, rgba(26, 35, 50, 0.9), rgba(15, 36, 64, 0.6));
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(30, 58, 138, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Reset */
@@ -178,8 +208,8 @@ img {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(212, 168, 67, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(212, 168, 67, 0.4); }
+  0%, 100% { box-shadow: 0 0 5px rgba(30, 58, 138, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(30, 58, 138, 0.4); }
 }
 
 @keyframes shimmer {
@@ -215,6 +245,6 @@ img {
 
 /* Selection */
 ::selection {
-  background: rgba(212, 168, 67, 0.3);
+  background: rgba(30, 58, 138, 0.3);
   color: var(--color-text);
 }
