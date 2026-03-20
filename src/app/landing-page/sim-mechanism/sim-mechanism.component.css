@@ -1,0 +1,147 @@
+/* Timeline */
+.mechanism-timeline {
+  max-width: 700px;
+  margin: 0 auto 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.timeline-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+  transform: none;
+  box-shadow: none;
+}
+
+.timeline-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.timeline-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.timeline-line {
+  width: 2px;
+  flex: 1;
+  background: linear-gradient(to bottom, var(--color-accent), transparent);
+  margin-top: 0.5rem;
+  min-height: 20px;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+.timeline-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.timeline-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.detail-item svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.detail-cost {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.detail-cost.free {
+  color: var(--color-success);
+}
+
+.detail-note {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Total cost */
+.total-cost {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  background: rgba(212, 168, 67, 0.06);
+  border-color: rgba(212, 168, 67, 0.2);
+}
+
+.total-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.total-value {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.total-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .timeline-item {
+    padding: 1rem 0.5rem;
+  }
+}

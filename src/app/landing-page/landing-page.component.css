@@ -1,0 +1,11 @@
+.landing-page {
+  min-height: 100vh;
+}
+
+.section {
+  padding: var(--section-pad) 0;
+}
+
+.section-alt {
+  background: var(--color-bg-secondary);
+}

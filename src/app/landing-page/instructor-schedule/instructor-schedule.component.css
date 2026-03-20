@@ -1,0 +1,228 @@
+.instructor-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Instructor list */
+.instructor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.instructor-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.instructor-card.active {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+
+.instructor-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.instructor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.instructor-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.instructor-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.meta-dot {
+  opacity: 0.5;
+}
+
+.instructor-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.1rem;
+}
+
+.instructor-vehicle svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Schedule grid */
+.schedule-container {
+  padding: 0;
+}
+
+.schedule-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.schedule-grid-wrapper {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.schedule-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.grid-header-time,
+.grid-header-day {
+  padding: 0.75rem 0.5rem;
+  background: rgba(26, 54, 93, 0.4);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.grid-header-time {
+  text-align: left;
+  padding-left: 1rem;
+  min-width: 120px;
+}
+
+.grid-time {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: rgba(15, 36, 64, 0.3);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.grid-cell {
+  padding: 0.5rem;
+  text-align: center;
+  border: 1px solid rgba(148, 163, 184, 0.06);
+  transition: background var(--transition-fast);
+  min-width: 85px;
+}
+
+.cell-status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Slot states */
+.slot-available {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.slot-available .cell-status {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+}
+
+.slot-booked {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.slot-booked .cell-status {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-info);
+}
+
+.slot-holiday {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.slot-holiday .cell-status {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+}
+
+/* Legend */
+.schedule-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-dot.slot-available {
+  background: var(--color-success);
+}
+
+.legend-dot.slot-booked {
+  background: var(--color-info);
+}
+
+.legend-dot.slot-holiday {
+  background: var(--color-danger);
+}
+
+@media (max-width: 900px) {
+  .instructor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .instructor-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .instructor-card {
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+}

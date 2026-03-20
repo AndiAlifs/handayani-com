@@ -1,0 +1,52 @@
+<div class="container">
+  <h2 class="section-title">Program <span class="accent-text">Kursus</span> Kami</h2>
+  <p class="section-subtitle">Pilih program kursus yang sesuai dengan kebutuhan Anda</p>
+
+  <div class="category-tabs" role="tablist">
+    @for (cat of categories; track cat) {
+      <button
+        class="category-tab"
+        [class.active]="cat === activeCategory"
+        (click)="setCategory(cat)"
+        [attr.id]="'tab-' + cat"
+        role="tab">
+        <span class="tab-icon">{{ getCategoryIcon(cat) }}</span>
+        <span class="tab-label">{{ cat }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="course-grid">
+    @for (course of filteredCourses; track course.id) {
+      <div class="course-card glass-card">
+        <div class="card-header">
+          <span class="card-badge">{{ course.programType }}</span>
+          <span class="card-icon">{{ getCategoryIcon(course.category) }}</span>
+        </div>
+        <h3 class="card-title">{{ course.specifics }}</h3>
+        <div class="card-detail">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>{{ course.duration }}</span>
+        </div>
+        <div class="card-pricing">
+          <div class="price-main">
+            <span class="price-label">Biaya Kursus</span>
+            <span class="price-value">{{ formatPrice(course.price) }}</span>
+          </div>
+          <div class="price-reg">
+            <span class="price-label">Pendaftaran</span>
+            <span class="price-value-small">{{ formatPrice(course.registrationFee) }}</span>
+          </div>
+        </div>
+        @if (course.remarks) {
+          <p class="card-remarks">{{ course.remarks }}</p>
+        }
+        <a href="https://wa.me/6282191927620?text=Halo, saya tertarik dengan kursus {{ course.specifics }}"
+           target="_blank" rel="noopener" class="card-cta" [attr.id]="'cta-course-' + course.id">
+          Daftar Sekarang
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    }
+  </div>
+</div>
