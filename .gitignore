@@ -90,3 +90,8 @@ cypress/screenshots/
 cypress/videos/
 *.log
 
+# Python backend
+backend/.venv/
+backend/**/__pycache__/
+*.py[cod]
+
