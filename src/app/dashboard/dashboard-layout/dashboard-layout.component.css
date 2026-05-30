@@ -38,8 +38,10 @@
   text-decoration: none;
 }
 
-.sidebar-icon {
-  font-size: 1.5rem;
+.sidebar-icon-img {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
 }
 
 .sidebar-brand-name {
@@ -181,6 +183,23 @@
   flex-shrink: 0;
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-icon-img {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
 .topbar-toggle {
   color: var(--color-text-secondary);
   padding: 0.5rem;
@@ -228,6 +247,16 @@
 }
 
 /* Responsive */
+@media (min-width: 1024px) {
+  .topbar-toggle {
+    display: none;
+  }
+  
+  .topbar-brand {
+    display: none;
+  }
+}
+
 @media (max-width: 1023px) {
   .sidebar {
     position: fixed;

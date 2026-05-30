@@ -12,4 +12,9 @@ import { ThemeService } from '../../../core/services/theme.service';
 })
 export class NavbarComponent {
   public themeService = inject(ThemeService);
+  public isMobileMenuOpen = false;
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
 }

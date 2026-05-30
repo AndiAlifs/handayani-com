@@ -1,7 +1,7 @@
 <nav class="hero-nav">
   <div class="container nav-inner">
     <div class="nav-brand">
-      <span class="brand-icon">🎓</span>
+      <img src="/LogoHandayani.png" alt="YPA Handayani" class="brand-icon-img">
       <span class="brand-text">YPA <span class="accent-text">Handayani</span></span>
     </div>
     <div class="nav-links">
@@ -20,8 +20,32 @@
       <a routerLink="/login" class="nav-link nav-link-login">Login Admin</a>
       <a href="/#contact" class="nav-link nav-link-cta">Hubungi Kami</a>
     </div>
-    <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Toggle menu">
+    <button class="nav-mobile-toggle" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
   </div>
+
+  <!-- Mobile Menu Dropdown -->
+  @if (isMobileMenuOpen) {
+    <div class="mobile-menu-container">
+      <div class="mobile-menu-links">
+        <a href="/#courses" class="mobile-nav-link" (click)="toggleMobileMenu()">Kursus</a>
+        <a href="/#instructors" class="mobile-nav-link" (click)="toggleMobileMenu()">Instruktur</a>
+        <a href="/#sim-mechanism" class="mobile-nav-link" (click)="toggleMobileMenu()">SIM A</a>
+        <a routerLink="/login" class="mobile-nav-link mobile-nav-link-login" (click)="toggleMobileMenu()">Login Admin</a>
+        <a href="/#contact" class="mobile-nav-link mobile-nav-link-cta" (click)="toggleMobileMenu()">Hubungi Kami</a>
+        
+        <div class="mobile-theme-toggle">
+          <span class="mobile-nav-link">Mode Tampilan</span>
+          <button (click)="themeService.toggleTheme()" class="theme-toggle-btn" [attr.aria-label]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+            @if (themeService.isDarkMode()) {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </nav>
