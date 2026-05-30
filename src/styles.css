@@ -10,18 +10,18 @@
   --color-accent-dark: #172554;
 
   /* Neutrals (Light Mode Default) */
-  --color-bg: #f8fafc;
-  --color-bg-secondary: #f1f5f9;
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f0f4f8;
   --color-bg-card: #ffffff;
-  --color-bg-card-hover: #f1f5f9;
-  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-bg-card-hover: #f8fafc;
+  --color-surface: rgba(255, 255, 255, 0.9);
   --color-text: #0f172a;
-  --color-text-secondary: #475569;
+  --color-text-secondary: #334155;
   --color-text-muted: #64748b;
-  --color-border: rgba(15, 23, 42, 0.1);
-  --color-border-hover: rgba(30, 58, 138, 0.5);
-  --color-overlay-light: rgba(15, 23, 42, 0.03);
-  --color-overlay-hover: rgba(15, 23, 42, 0.06);
+  --color-border: rgba(30, 58, 138, 0.1);
+  --color-border-hover: rgba(30, 58, 138, 0.4);
+  --color-overlay-light: rgba(30, 58, 138, 0.03);
+  --color-overlay-hover: rgba(30, 58, 138, 0.06);
 
   /* Semantic */
   --color-success: #22c55e;
@@ -32,17 +32,17 @@
 
   /* Gradients (Light Mode Default) */
   --gradient-primary: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1a365d 100%);
-  --gradient-accent: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e3a8a 100%);
-  --gradient-hero: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 70%, #f8fafc 100%);
-  --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(248, 250, 252, 0.6));
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
+  --gradient-accent: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #172554 100%);
+  --gradient-hero: linear-gradient(160deg, #ffffff 0%, #f0f4f8 40%, #e0e7ff 100%);
+  --gradient-card: linear-gradient(145deg, #ffffff, rgba(240, 244, 248, 0.6));
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
 
   /* Shadows (Light Mode Default) */
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.1);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
-  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.1);
-  --shadow-glow: 0 0 20px rgba(30, 58, 138, 0.25);
-  --shadow-card: 0 4px 24px rgba(15, 23, 42, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --shadow-sm: 0 1px 3px rgba(30, 58, 138, 0.08);
+  --shadow-md: 0 4px 12px rgba(30, 58, 138, 0.08);
+  --shadow-lg: 0 8px 32px rgba(30, 58, 138, 0.1);
+  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.3);
+  --shadow-card: 0 8px 32px rgba(30, 58, 138, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   /* Typography */
   --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
