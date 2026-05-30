@@ -219,7 +219,7 @@
   gap: 0.5rem;
   padding: 0.875rem 2rem;
   background: var(--gradient-accent);
-  color: var(--color-primary-dark);
+  color: #ffffff;
   font-weight: 600;
   font-size: 1rem;
   border-radius: var(--radius-md);
