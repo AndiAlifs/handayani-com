@@ -13,12 +13,13 @@
   --color-text-muted: #64748b; /* Slate 500 */
   
   /* Brand Palette */
-  --color-primary: #1e3a8a; /* Deep Trustworthy Blue */
-  --color-primary-light: #2563eb; /* Vibrant Interactive Blue */
-  --color-primary-bg: #eff6ff; /* Blue tint for backgrounds */
+  --color-primary: #1b4e8c; /* Deep Trustworthy Blue from Logo */
+  --color-primary-light: #2c68b8; /* Lighter interactive blue */
+  --color-primary-bg: #f0f5fa; /* Blue tint for backgrounds */
   
-  --color-accent: #eab308; /* Professional Yellow */
-  --color-accent-light: #fef08a;
+  --color-accent: #c99b2e; /* Gold/Yellow from Logo leaves */
+  --color-accent-light: #e0b855;
+  --color-accent-green: #228b22; /* Green from logo leaves */
   
   --color-border: #e2e8f0;
   --color-border-hover: #cbd5e1;
@@ -27,6 +28,11 @@
   --color-success: #16a34a;
   --color-warning: #d97706;
   --color-danger: #dc2626;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 
   /* Typography */
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -62,6 +68,9 @@
   --color-primary-bg: #0f172a;
   --color-primary: #3b82f6;
   --color-accent: #fbbf24;
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, #2563eb 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, #2563eb 100%);
+  --gradient-hero: linear-gradient(135deg, #020617 0%, #0f172a 100%);
 }
 
 /* Reset */
