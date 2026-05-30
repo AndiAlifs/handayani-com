@@ -1,42 +1,40 @@
 <div class="container">
-  <h2 class="section-title">MEKANISME <span class="accent-text">SIM A/C</span></h2>
-  <p class="section-subtitle">> BYPASS UJIAN TEORI & PRAKTIK DENGAN SERTIFIKASI YPA_</p>
+  <h2 class="section-title">Mekanisme <span class="accent-text">SIM A & C</span></h2>
+  <p class="section-subtitle">Langkah-langkah dan persyaratan pembuatan SIM A dan SIM C secara resmi.</p>
 
-  <div class="highlight-box cyber-card">
+  <div class="highlight-box clean-card">
     <div class="highlight-icon">
-      <!-- Shield/Alert Icon -->
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-neon-yellow)" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="M12 8v4"/>
-        <path d="M12 16h.01"/>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
     </div>
     <div class="highlight-content">
-      <h3 class="highlight-title">SYSTEM OVERRIDE: BEBAS UJIAN</h3>
-      <p class="highlight-desc">Sertifikat dari <strong>YPA HANDAYANI</strong> bertindak sebagai <em>underlying</em> (syarat pengganti). Anda <strong>TIDAK PERLU</strong> mengikuti Ujian Teori dan Praktik di Satpas.</p>
+      <h3 class="highlight-title">Bebas Ujian Teori & Praktik!</h3>
+      <p class="highlight-desc">Sertifikat dari YPA Handayani Kendari bertindak sebagai <em>underlying</em> (syarat pengganti). Anda <strong>tidak perlu lagi</strong> mengikuti Ujian Teori dan Ujian Praktik SIM di Satpas.</p>
     </div>
   </div>
 
   <div class="mechanism-timeline">
     @for (mech of mechanisms; track mech.id; let i = $index) {
-      <div class="timeline-item cyber-card" [attr.id]="'mech-' + mech.id">
+      <div class="timeline-item clean-card" [attr.id]="'mech-' + mech.id">
         <div class="timeline-connector">
-          <div class="timeline-number">0{{ i + 1 }}</div>
+          <div class="timeline-number">{{ i + 1 }}</div>
         </div>
         <div class="timeline-content">
-          <h3 class="timeline-title">{{ mech.requirementName | uppercase }}</h3>
+          <h3 class="timeline-title">{{ mech.requirementName }}</h3>
           <div class="timeline-details">
             <div class="detail-item">
-              <span class="detail-label">INSTANSI:</span>
-              <span class="accent-text-pink">{{ mech.issuingBody | uppercase }}</span>
+              <span class="detail-label">Instansi</span>
+              <span class="detail-value">{{ mech.issuingBody }}</span>
             </div>
             <div class="detail-item">
-              <span class="detail-label">BIAYA:</span>
+              <span class="detail-label">Biaya</span>
               <span class="detail-cost" [class.free]="mech.cost === 0">{{ formatPrice(mech.cost) }}</span>
             </div>
             @if (mech.notes) {
-              <div class="detail-item">
-                <span class="detail-note">// {{ mech.notes | uppercase }}</span>
+              <div class="detail-item note">
+                <span>{{ mech.notes }}</span>
               </div>
             }
           </div>
@@ -45,9 +43,9 @@
     }
   </div>
 
-  <div class="total-cost cyber-card">
-    <div class="total-label">ESTIMASI BIAYA TOTAL</div>
+  <div class="total-cost clean-card">
+    <div class="total-label">Estimasi Total Biaya</div>
     <div class="total-value">{{ formatPrice(totalCost) }}</div>
-    <div class="total-note">> DATA DAPAT BERUBAH SESUAI KEBIJAKAN INSTANSI</div>
+    <div class="total-note">*Biaya dapat berubah sesuai dengan kebijakan instansi terkait.</div>
   </div>
 </div>
