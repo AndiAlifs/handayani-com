@@ -1,12 +1,12 @@
 <div class="container">
-  <h2 class="section-title">ARSIP <span class="accent-text">INSTRUKTUR</span></h2>
-  <p class="section-subtitle">> PILIH OPERATOR PELATIHAN ANDA_</p>
+  <h2 class="section-title">Instruktur <span class="accent-text">Kami</span></h2>
+  <p class="section-subtitle">Didampingi oleh instruktur sabar, berpengalaman, dan tersertifikasi.</p>
 
   <div class="instructor-layout">
     <div class="instructor-list">
       @for (instructor of instructors; track instructor.id) {
         <button
-          class="cyber-card instructor-card"
+          class="clean-card instructor-card"
           [class.active]="selectedInstructor?.id === instructor.id"
           (click)="selectInstructor(instructor)"
           [attr.id]="'instructor-' + instructor.id">
@@ -14,13 +14,15 @@
             {{ instructor.name.charAt(0) }}
           </div>
           <div class="instructor-info">
-            <h4 class="instructor-name">{{ instructor.name | uppercase }}</h4>
+            <h4 class="instructor-name">{{ instructor.name }}</h4>
             <div class="instructor-meta">
-              <span class="meta-tag">[{{ instructor.gender | uppercase }}]</span>
-              <span class="meta-tag">[{{ instructor.age }}TH]</span>
+              <span class="meta-tag">{{ instructor.gender }}</span>
+              <span class="meta-dot">&bull;</span>
+              <span class="meta-tag">{{ instructor.age }} Tahun</span>
             </div>
             <div class="instructor-vehicle">
-              > {{ instructor.vehicle | uppercase }} // {{ instructor.transmission | uppercase }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              {{ instructor.vehicle }} ({{ instructor.transmission }})
             </div>
           </div>
         </button>
@@ -28,17 +30,17 @@
     </div>
 
     @if (selectedInstructor) {
-      <div class="schedule-container cyber-card">
+      <div class="schedule-container clean-card">
         <h3 class="schedule-title">
-          JADWAL OPERATOR: <span class="accent-text-pink">{{ selectedInstructor.name | uppercase }}</span>
+          Jadwal <span class="accent-text">{{ selectedInstructor.name }}</span>
         </h3>
         <div class="schedule-grid-wrapper">
           <table class="schedule-grid" id="schedule-table">
             <thead>
               <tr>
-                <th class="grid-header-time">WAKTU</th>
+                <th class="grid-header-time">Waktu</th>
                 @for (day of days; track day) {
-                  <th class="grid-header-day">{{ day | uppercase }}</th>
+                  <th class="grid-header-day">{{ day }}</th>
                 }
               </tr>
             </thead>
@@ -48,7 +50,7 @@
                   <td class="grid-time">{{ time }}</td>
                   @for (day of days; track day) {
                     <td class="grid-cell" [class]="getSlotClass(getSlotStatus(day, time))">
-                      <span class="cell-status">{{ getSlotStatus(day, time) | uppercase }}</span>
+                      <span class="cell-status">{{ getSlotStatus(day, time) }}</span>
                     </td>
                   }
                 </tr>
@@ -59,15 +61,15 @@
         <div class="schedule-legend">
           <div class="legend-item">
             <span class="legend-dot slot-available"></span>
-            <span>TERSEDIA</span>
+            <span>Tersedia</span>
           </div>
           <div class="legend-item">
             <span class="legend-dot slot-booked"></span>
-            <span>TERISI</span>
+            <span>Terisi</span>
           </div>
           <div class="legend-item">
             <span class="legend-dot slot-holiday"></span>
-            <span>LIBUR</span>
+            <span>Libur</span>
           </div>
         </div>
       </div>
