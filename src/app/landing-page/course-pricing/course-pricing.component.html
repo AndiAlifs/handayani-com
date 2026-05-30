@@ -1,6 +1,6 @@
 <div class="container">
-  <h2 class="section-title">PROGRAM <span class="accent-text">KURSUS</span></h2>
-  <p class="section-subtitle">> PILIH MODUL PELATIHAN UNTUK UPGRADE KEAHLIAN ANDA_</p>
+  <h2 class="section-title">Program <span class="accent-text">Kursus</span> Kami</h2>
+  <p class="section-subtitle">Pilih program kursus yang sesuai dengan kebutuhan dan target pembelajaran Anda.</p>
 
   <div class="category-tabs" role="tablist">
     @for (cat of categories; track cat) {
@@ -11,42 +11,42 @@
         [attr.id]="'tab-' + cat"
         role="tab">
         <span class="tab-icon">{{ getCategoryIcon(cat) }}</span>
-        <span class="tab-label">{{ cat | uppercase }}</span>
+        <span class="tab-label">{{ cat }}</span>
       </button>
     }
   </div>
 
   <div class="course-grid">
     @for (course of filteredCourses; track course.id) {
-      <div class="cyber-card course-card">
+      <div class="clean-card course-card">
         <div class="card-header">
-          <span class="card-badge">[{{ course.programType | uppercase }}]</span>
+          <span class="card-badge">{{ course.programType }}</span>
           <span class="card-icon">{{ getCategoryIcon(course.category) }}</span>
         </div>
-        <h3 class="card-title">{{ course.specifics | uppercase }}</h3>
+        <h3 class="card-title">{{ course.specifics }}</h3>
         <div class="card-detail">
-          <span class="bracket">></span>
-          <span>DURASI: {{ course.duration | uppercase }}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>{{ course.duration }}</span>
         </div>
         
         <div class="card-pricing">
           <div class="price-main">
-            <span class="price-label">BIAYA MODUL</span>
+            <span class="price-label">Biaya Kursus</span>
             <span class="price-value">{{ formatPrice(course.price) }}</span>
           </div>
           <div class="price-reg">
-            <span class="price-label">REGISTRASI</span>
+            <span class="price-label">Pendaftaran</span>
             <span class="price-value-small">{{ formatPrice(course.registrationFee) }}</span>
           </div>
         </div>
         
         @if (course.remarks) {
-          <p class="card-remarks">// {{ course.remarks | uppercase }}</p>
+          <p class="card-remarks">{{ course.remarks }}</p>
         }
         
         <a href="https://wa.me/6282191927620?text=Halo, saya tertarik dengan kursus {{ course.specifics }}"
            target="_blank" rel="noopener" class="btn-primary card-cta" [attr.id]="'cta-course-' + course.id">
-           EXECUTE_DAFTAR
+           Daftar Sekarang
         </a>
       </div>
     }
