@@ -1,25 +1,25 @@
 <!-- Chat Toggle -->
 <button class="chat-toggle" [class.open]="isOpen" (click)="toggleChat()" id="chat-toggle" aria-label="Open chat">
   @if (!isOpen) {
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
   } @else {
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
   }
 </button>
 
 <!-- Chat Window -->
 @if (isOpen) {
-  <div class="chat-window cyber-card" id="chat-window">
+  <div class="chat-window clean-card" id="chat-window">
     <div class="chat-header">
       <div class="chat-header-info">
         <div class="chat-avatar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
         </div>
         <div>
-          <h4 class="chat-title">AI_ASSISTANT v1.0</h4>
+          <h4 class="chat-title">Asisten YPA</h4>
           <span class="chat-status">
             <span class="status-dot"></span>
-            SYS_ONLINE
+            Siap Membantu
           </span>
         </div>
       </div>
@@ -31,7 +31,7 @@
           <div class="message-bubble">
             {{ msg.text }}
           </div>
-          <span class="message-time">[{{ msg.time }}]</span>
+          <span class="message-time">{{ msg.time }}</span>
         </div>
       }
     </div>
@@ -40,12 +40,12 @@
       <input
         type="text"
         class="chat-input"
-        placeholder="INPUT_COMMAND..."
+        placeholder="Ketik pesan Anda..."
         [(ngModel)]="messageText"
         (keyup.enter)="sendMessage()"
         id="chat-input" />
-      <button class="chat-send" (click)="sendMessage()" id="chat-send" aria-label="Send message">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      <button class="chat-send" (click)="sendMessage()" id="chat-send" aria-label="Kirim pesan">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
       </button>
     </div>
   </div>
