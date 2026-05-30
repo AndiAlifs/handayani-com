@@ -37,6 +37,13 @@
   font-size: 1.5rem;
   color: var(--color-primary);
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 48px; /* Adjust based on your logo aspect ratio */
+  width: auto;
 }
 
 .nav-links {
