@@ -21,15 +21,11 @@ yarn-error.log
 *.sublime-workspace
 
 # Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
+.vscode/
+.history/
+
 
 # Miscellaneous
-/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
@@ -37,9 +33,60 @@ yarn-error.log
 testem.log
 /typings
 
+# Angular
+.angular/
+
 # System files
 .DS_Store
 Thumbs.db
 
 # Antigravity CLI
 .antigravitycli/
+
+# Sensitive files / Secrets / API keys
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
+*.private
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+credentials.json
+client_secret*.json
+
+# Windows-specific system files (enhanced)
+[Dd]esktop.ini
+$RECYCLE.BIN/
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db:encryptable
+
+# macOS system files (enhanced)
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Package managers & additional caches
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.eslintcache
+.parcel-cache
+.cache/
+.tsbuildinfo
+
+# Debugging / Testing logs & media
+cypress/screenshots/
+cypress/videos/
+*.log
+
