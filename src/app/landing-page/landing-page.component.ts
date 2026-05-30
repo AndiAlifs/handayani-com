@@ -6,6 +6,9 @@ import { SimMechanismComponent } from './sim-mechanism/sim-mechanism.component';
 import { ChatBotComponent } from './chat-bot/chat-bot.component';
 import { CtaFooterComponent } from './cta-footer/cta-footer.component';
 
+import { VideoTestimonialComponent } from './video-testimonial/video-testimonial.component';
+import { InstagramFeedComponent } from './instagram-feed/instagram-feed.component';
+
 @Component({
   selector: 'app-landing-page',
   standalone: true,
@@ -14,6 +17,8 @@ import { CtaFooterComponent } from './cta-footer/cta-footer.component';
     CoursePricingComponent,
     InstructorScheduleComponent,
     SimMechanismComponent,
+    VideoTestimonialComponent,
+    InstagramFeedComponent,
     ChatBotComponent,
     CtaFooterComponent
   ],
