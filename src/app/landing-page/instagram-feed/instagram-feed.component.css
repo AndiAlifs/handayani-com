@@ -3,56 +3,45 @@
   margin-bottom: 3rem;
 }
 
-.ig-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+.ig-masonry {
+  /* Use CSS columns for a masonry effect */
+  column-count: 3;
+  column-gap: 1.5rem;
   margin-bottom: 3rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.ig-post {
-  position: relative;
-  display: block;
+.ig-masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
   border-radius: var(--radius-md);
   overflow: hidden;
-  aspect-ratio: 1 / 1;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  background: transparent;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  /* The iframe from instagram will resize itself, we just let it flow natively */
+  display: flex;
+  justify-content: center;
 }
 
-.ig-post:hover {
+.ig-masonry-item:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-lg);
 }
 
-.ig-image {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  transition: transform 0.5s ease;
+/* Make it responsive */
+@media (max-width: 992px) {
+  .ig-masonry {
+    column-count: 2;
+  }
 }
 
-.ig-post:hover .ig-image {
-  transform: scale(1.05);
-}
-
-.ig-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(30, 58, 138, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity var(--transition-base);
-}
-
-.ig-post:hover .ig-overlay {
-  opacity: 1;
+@media (max-width: 576px) {
+  .ig-masonry {
+    column-count: 1;
+  }
 }
 
 .ig-footer {

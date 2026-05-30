@@ -5,10 +5,23 @@
       <span class="brand-text">YPA <span class="accent-text">Handayani</span></span>
     </div>
     <div class="nav-links">
-      <a href="/#courses" class="nav-link">Kursus</a>
-      <a href="/#instructors" class="nav-link">Instruktur</a>
-      <a href="/#sim-mechanism" class="nav-link">SIM A</a>
+      <a href="/#courses" class="nav-link">{{ 'NAVBAR.COURSES' | translate }}</a>
+      <a href="/#instructors" class="nav-link">{{ 'NAVBAR.INSTRUCTORS' | translate }}</a>
+      <a href="/#sim-mechanism" class="nav-link">{{ 'NAVBAR.SIM_A' | translate }}</a>
       
+      <div class="lang-dropdown-container">
+        <button class="nav-link lang-btn" (click)="toggleLangMenu()" aria-haspopup="true" [attr.aria-expanded]="isLangMenuOpen">
+          {{ translateService.currentLang | uppercase }}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        @if (isLangMenuOpen) {
+          <div class="lang-dropdown-menu">
+            <button class="lang-dropdown-item" (click)="changeLanguage('id')" [class.active]="translateService.currentLang === 'id'">{{ 'LANGUAGE.ID' | translate }}</button>
+            <button class="lang-dropdown-item" (click)="changeLanguage('en')" [class.active]="translateService.currentLang === 'en'">{{ 'LANGUAGE.EN' | translate }}</button>
+          </div>
+        }
+      </div>
+
       <button (click)="themeService.toggleTheme()" class="nav-link theme-toggle-btn" [attr.aria-label]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
         @if (themeService.isDarkMode()) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -17,8 +30,8 @@
         }
       </button>
 
-      <a routerLink="/login" class="nav-link nav-link-login">Login Admin</a>
-      <a href="/#contact" class="nav-link nav-link-cta">Hubungi Kami</a>
+      <a routerLink="/login" class="nav-link nav-link-login">{{ 'NAVBAR.LOGIN_ADMIN' | translate }}</a>
+      <a href="/#contact" class="nav-link nav-link-cta">{{ 'NAVBAR.CONTACT' | translate }}</a>
     </div>
     <button class="nav-mobile-toggle" [class.active]="isMobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
       <span></span><span></span><span></span>
@@ -29,14 +42,22 @@
   @if (isMobileMenuOpen) {
     <div class="mobile-menu-container">
       <div class="mobile-menu-links">
-        <a href="/#courses" class="mobile-nav-link" (click)="toggleMobileMenu()">Kursus</a>
-        <a href="/#instructors" class="mobile-nav-link" (click)="toggleMobileMenu()">Instruktur</a>
-        <a href="/#sim-mechanism" class="mobile-nav-link" (click)="toggleMobileMenu()">SIM A</a>
-        <a routerLink="/login" class="mobile-nav-link mobile-nav-link-login" (click)="toggleMobileMenu()">Login Admin</a>
-        <a href="/#contact" class="mobile-nav-link mobile-nav-link-cta" (click)="toggleMobileMenu()">Hubungi Kami</a>
+        <a href="/#courses" class="mobile-nav-link" (click)="toggleMobileMenu()">{{ 'NAVBAR.COURSES' | translate }}</a>
+        <a href="/#instructors" class="mobile-nav-link" (click)="toggleMobileMenu()">{{ 'NAVBAR.INSTRUCTORS' | translate }}</a>
+        <a href="/#sim-mechanism" class="mobile-nav-link" (click)="toggleMobileMenu()">{{ 'NAVBAR.SIM_A' | translate }}</a>
+        <a routerLink="/login" class="mobile-nav-link mobile-nav-link-login" (click)="toggleMobileMenu()">{{ 'NAVBAR.LOGIN_ADMIN' | translate }}</a>
+        <a href="/#contact" class="mobile-nav-link mobile-nav-link-cta" (click)="toggleMobileMenu()">{{ 'NAVBAR.CONTACT' | translate }}</a>
         
         <div class="mobile-theme-toggle">
-          <span class="mobile-nav-link">Mode Tampilan</span>
+          <span class="mobile-nav-link">{{ 'NAVBAR.LANGUAGE' | translate }}</span>
+          <div class="mobile-lang-buttons">
+            <button class="theme-toggle-btn lang-btn-mobile" [class.active]="translateService.currentLang === 'id'" (click)="changeLanguage('id')">ID</button>
+            <button class="theme-toggle-btn lang-btn-mobile" [class.active]="translateService.currentLang === 'en'" (click)="changeLanguage('en')">EN</button>
+          </div>
+        </div>
+
+        <div class="mobile-theme-toggle">
+          <span class="mobile-nav-link">{{ 'NAVBAR.THEME_MODE' | translate }}</span>
           <button (click)="themeService.toggleTheme()" class="theme-toggle-btn" [attr.aria-label]="themeService.isDarkMode() ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
             @if (themeService.isDarkMode()) {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>

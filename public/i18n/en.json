@@ -1,0 +1,16 @@
+{
+  "WELCOME_MESSAGE": "Welcome to Handayani",
+  "NAVBAR": {
+    "COURSES": "Courses",
+    "INSTRUCTORS": "Instructors",
+    "SIM_A": "Driver's License A",
+    "LOGIN_ADMIN": "Admin Login",
+    "CONTACT": "Contact Us",
+    "THEME_MODE": "Theme Mode",
+    "LANGUAGE": "Language"
+  },
+  "LANGUAGE": {
+    "ID": "Bahasa Indonesia",
+    "EN": "English"
+  }
+}

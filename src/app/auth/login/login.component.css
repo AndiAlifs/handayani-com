@@ -88,7 +88,7 @@
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #ffffff;
 }
 
 .brand-name .accent {
@@ -100,13 +100,13 @@
   font-size: clamp(1.75rem, 3.5vw, 2.75rem);
   font-weight: 800;
   line-height: 1.2;
-  color: var(--color-text);
+  color: #ffffff;
   margin-bottom: 1.25rem;
 }
 
 .brand-desc {
   font-size: 1rem;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.7;
   max-width: 420px;
   margin-bottom: 2.5rem;
@@ -128,13 +128,13 @@
   border-radius: var(--radius-md);
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   transition: all var(--transition-fast);
 }
 
 .feature-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text);
+  color: #ffffff;
 }
 
 .feature-icon {

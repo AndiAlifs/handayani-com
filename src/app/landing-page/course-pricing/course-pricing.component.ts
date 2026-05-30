@@ -47,4 +47,17 @@ export class CoursePricingComponent implements OnInit {
     };
     return icons[cat] || '📚';
   }
+
+  getCourseImage(course: Course): string {
+    if (course.category === 'Mengemudi') {
+      if (course.specifics.includes('Manual')) return 'assets/images/courses/manual.png';
+      if (course.specifics.includes('Matic')) return 'assets/images/courses/matic.png';
+      if (course.specifics.includes('Hybrid')) return 'assets/images/courses/hybrid.png';
+    }
+    if (course.category === 'Menjahit') return 'assets/images/courses/sewing.png';
+    if (course.category === 'Komputer') return 'assets/images/courses/computer.png';
+    if (course.category === 'Bahasa Inggris') return 'assets/images/courses/english.png';
+    if (course.category === 'Bahasa Mandarin') return 'assets/images/courses/mandarin.png';
+    return 'assets/images/courses/manual.png';
+  }
 }

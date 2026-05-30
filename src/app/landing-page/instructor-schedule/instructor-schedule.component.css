@@ -87,6 +87,7 @@
 .schedule-container {
   padding: 2rem;
   overflow-x: auto;
+  min-width: 0;
 }
 
 .schedule-title {
@@ -106,7 +107,7 @@
 .schedule-grid {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  min-width: 700px;
 }
 
 .schedule-grid th, .schedule-grid td {
@@ -127,6 +128,7 @@
   color: var(--color-text-secondary);
   font-weight: 500;
   background: var(--color-bg-secondary);
+  white-space: nowrap;
 }
 
 .grid-cell {
@@ -135,6 +137,7 @@
 }
 
 .cell-status {
+  display: inline-block;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-full);
 }
@@ -165,9 +168,9 @@
   border-radius: var(--radius-full);
 }
 
-.slot-available { background: var(--color-success); }
-.slot-booked { background: var(--color-danger); }
-.slot-holiday { background: var(--color-text-muted); }
+.slot-available { background: var(--color-success); color: white; }
+.slot-booked { background: var(--color-danger); color: white; }
+.slot-holiday { background: var(--color-text-muted); color: white; }
 
 @media (max-width: 900px) {
   .instructor-layout {

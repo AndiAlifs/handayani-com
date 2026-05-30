@@ -49,8 +49,8 @@
                 <tr>
                   <td class="grid-time">{{ time }}</td>
                   @for (day of days; track day) {
-                    <td class="grid-cell" [class]="getSlotClass(getSlotStatus(day, time))">
-                      <span class="cell-status">{{ getSlotStatus(day, time) }}</span>
+                    <td class="grid-cell">
+                      <span class="cell-status" [class]="getSlotClass(getSlotStatus(day, time))">{{ getSlotStatus(day, time) }}</span>
                     </td>
                   }
                 </tr>

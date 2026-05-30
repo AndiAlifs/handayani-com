@@ -1,0 +1,16 @@
+{
+  "WELCOME_MESSAGE": "Selamat Datang di Handayani",
+  "NAVBAR": {
+    "COURSES": "Kursus",
+    "INSTRUCTORS": "Instruktur",
+    "SIM_A": "SIM A",
+    "LOGIN_ADMIN": "Login Admin",
+    "CONTACT": "Hubungi Kami",
+    "THEME_MODE": "Mode Tampilan",
+    "LANGUAGE": "Bahasa"
+  },
+  "LANGUAGE": {
+    "ID": "Bahasa Indonesia",
+    "EN": "English"
+  }
+}

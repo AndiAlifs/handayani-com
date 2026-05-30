@@ -19,6 +19,9 @@
   <div class="course-grid">
     @for (course of filteredCourses; track course.id) {
       <div class="clean-card course-card">
+        <div class="card-image-wrapper">
+          <img [src]="getCourseImage(course)" [alt]="course.specifics" class="card-image" loading="lazy">
+        </div>
         <div class="card-header">
           <span class="card-badge">{{ course.programType }}</span>
           <span class="card-icon">{{ getCategoryIcon(course.category) }}</span>
