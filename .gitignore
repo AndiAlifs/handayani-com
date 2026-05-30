@@ -90,3 +90,6 @@ cypress/screenshots/
 cypress/videos/
 *.log
 
+
+# Claude IDE
+.claude/
