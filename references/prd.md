@@ -1,85 +1,112 @@
-# Product Requirements Document (PRD)
-
-**Product Name:** YPA Handayani Knowledge Base Panel & Landing Page
-**Platform:** Web Application (Angular Frontend) & REST API (Golang Backend)
-**Database:** MySQL
-**Development Agency:** Simi Studio
+# 🚗 Handayani.com — All-in-One Driving School Management & AI Platform
+> **Master Product Requirements Document (PRD)**
 
 ---
 
-## 1. Executive Summary
+## 📌 1. Executive Summary & Product Vision
+**Handayani.com** is a comprehensive, end-to-end web platform designed to digitize and automate the operations of "Kursus Mengemudi Handayani" (Handayani Driving School). 
 
-### 1.1. Product Vision
-The YPA Handayani Knowledge Base Panel serves as the central nervous system for the institution's operational data. By digitizing course catalogs, instructor schedules, and administrative procedures, this system establishes a single source of truth. It empowers YPA Handayani to seamlessly distribute accurate, real-time information to a public-facing landing page and provides highly structured context to an AI RAG (Retrieval-Augmented Generation) Bot for automated customer service.
+The platform serves a dual purpose:
+1. **Customer-Facing Portal:** A modern landing page and customer portal where prospective students can browse courses, check instructor availability, learn about the SIM (driver's license) mechanism, and interact with an AI Chatbot for instant inquiries.
+2. **Internal Management Dashboard:** A robust system for admins and instructors to handle CRM, scheduling, and session management.
 
-### 1.2. Problem Statement
-Currently, YPA Handayani's information is locked in static assets like HTML files and image brochures. This makes updating schedules, changing prices, or modifying SIM procedures a manual, error-prone process. Furthermore, static image assets cannot be ingested by modern AI agents, preventing the automation of customer inquiries.
+**The "AI Advantage"**: This platform is heavily integrated with AI. An autonomous agent (powered by Gemini & LangChain) acts as a virtual assistant that handles customer support via the chatbot, and deeply integrates into Session Management to analyze instructor notes, suggest follow-up courses, and auto-update the CRM without manual data entry.
 
-## 2. Target Personas
+---
 
-* **System Administrator (YPA Staff):** Needs a fast, unified, and intuitive interface to update course prices, add new instructors, and manage weekly schedules based on offline bookings.
-* **Website Visitor (Prospective Student):** Expects a welcoming landing page to browse the most up-to-date pricing, view instructor availability, and chat with the AI Bot for onboarding.
-* **The AI RAG Bot (System Consumer):** Requires an endpoint that delivers the entire database in a clean, flattened, and highly descriptive text format via standard polling so it can accurately answer human queries.
+## 🏗️ 2. Technical Architecture & Tech Stack
 
-## 3. Technical Stack
+| Layer | Technology | Description |
+| :--- | :--- | :--- |
+| **Frontend** | Angular 18 | Single Page Application (SPA) serving both the landing page and the secure admin dashboard. |
+| **Backend** | Python (FastAPI) | High-performance backend handling API requests, business logic, and database transactions. |
+| **Database** | MySQL | Relational database for structured storage of CRM data, schedules, and courses. |
+| **AI Framework** | LangChain (Python) | Orchestrates tool-calling and agentic workflows. |
+| **LLM Model** | Gemini API | The brain behind the chatbot and session analysis. |
+| **Automation** | n8n API | Workflow automation tool to handle webhooks, notifications, and background integrations. |
 
-* **Frontend:** Angular (Powers both the Admin Dashboard and the Public Landing Page).
-* **Backend API:** Golang (RESTful architecture optimized for high concurrency and standard interval polling).
-* **Database:** MySQL.
+---
 
-## 4. Scope & Constraints
+## 👥 3. Core User Personas
 
-### 4.1. In Scope for MVP
-* **Unified Access Dashboard:** No complex role-based access control; all authenticated users have full Admin privileges.
-* **CRUD Operations:** Manage Courses, Instructors, and SIM Mechanisms.
-* **Manual Schedule Builder:** Visual grid to manually block out time slots post-confirmation.
-* **Public Landing Page:** For user onboarding and displaying dynamic data.
-* **REST APIs:** Standard endpoints for web data consumption and a specialized flat-text endpoint for AI bot polling.
+1. **The Student (Customer)**
+   - **Goal:** Find a suitable driving course, understand pricing, check schedules, and register.
+   - **Needs:** Fast, responsive UI; instant answers to questions (via Chatbot); clear pricing and SIM mechanisms.
+2. **The Instructor**
+   - **Goal:** View daily schedules, manage student sessions, and log post-session notes.
+   - **Needs:** Mobile-friendly dashboard, low administrative overhead (aided by AI auto-updating CRM).
+3. **The Administrator**
+   - **Goal:** Oversee the business, manage the fleet, track revenue, and monitor CRM health.
+   - **Needs:** High-level analytics, master calendar, and full control over course offerings.
 
-### 4.2. Out of Scope for MVP
-* Online payment gateways.
-* Automated student booking/reservation system.
-* Webhooks or push notifications to a Vector Database (Bot handles updates via polling).
+---
 
-## 5. Core Entities & Data Structure
+## 📋 4. Feature Specifications
 
-### 5.1. Courses & Pricing
-* **Categories:** Driving (Manual, Matic, Hybrid), Sewing, Computer, English, and Mandarin.
-* **Data Fields:** Category, Schedule Type (Reguler/Weekend), Specifics/Level/Vehicle (e.g., Avanza/Xenia, HSK 1), Duration/Meetings, Price (Rp), Registration Fee (Rp), and Remarks (e.g., "Excludes SIM & Certificate").
+### A. Customer-Facing Portal (Landing Page)
+- **Hero Section:** High-conversion call-to-action to book a course.
+- **Course Pricing:** Dynamic list of available packages (e.g., Manual vs. Automatic, 5 vs. 10 sessions).
+- **Instructor Schedule View:** Public view of instructors and high-level availability.
+- **SIM Mechanism Guide:** Educational section on how to get a driver's license.
+- **AI Chatbot (Widget):** 
+  - Trained on Handayani's FAQs, pricing, and policies.
+  - Can capture lead information (Name, Phone) and send it directly to the CRM via backend APIs.
 
-### 5.2. Instructors & Schedules
-* **Instructor Profiles:** Name, Gender, Age, Vehicle Model, and Transmission Type.
-* **Availability Matrix:** Weekly scheduling mapping time slots (e.g., 09.00 - 12.00, 13.00 - 15.00) to days of the week (Senin - Minggu). Tracks assigned students or "Libur" (Holiday) statuses.
+### B. Admin & Instructor Dashboard
+- **Authentication & Role Management:** Secure login (Admin vs. Instructor).
+- **Master Calendar (Scheduling):** Drag-and-drop calendar for booking driving sessions, assigning cars, and assigning instructors.
+- **CRM (Customer Relationship Management):** 
+  - Track leads (from chatbot/forms) through the pipeline (Lead -> Registered -> Completed).
+  - View student history, payment status, and progress.
+- **Session Management:**
+  - Instructors can view their upcoming students.
+  - Form to input "Session Notes" (e.g., "Student struggles with parallel parking, but clutch control is improving.").
 
-### 5.3. Administrative Mechanisms
-* **Data Fields:** Requirement Name (e.g., Driving Certificate, Health Certificate, Psychotest), Issuing Body, Estimated Cost (Rp), and Notes.
+### C. Agentic AI Integrations (The "Smart" Layer)
+- **AI Session Analyst:** 
+  - *Trigger:* When an instructor submits plain-text Session Notes.
+  - *Action:* The LangChain agent processes the text using Gemini API.
+  - *Output:* It automatically extracts structured data (Strengths, Weaknesses), suggests the focus for the *next* session, and **auto-updates the student's CRM profile**.
+  - *Upsell logic:* If the AI detects the student is still struggling at the end of their package, it generates a draft recommendation for a "Top-up / Follow-up Course" to send to the student.
 
-## 6. Functional Requirements (Epics)
+---
 
-### Epic 1: Public Landing Page & Student Onboarding
-**User Story:** As a prospective student, I want a clear landing page to browse courses and talk to the AI assistant so I can register.
-* **Acceptance Criteria 1:** Page features a Hero Section introducing YPA Handayani and an embedded AI RAG Bot chat UI.
-* **Acceptance Criteria 2:** Page dynamically fetches and displays active Course Pricing and Instructor Schedules from the API.
-* **Acceptance Criteria 3:** Page outlines the SIM A Mechanism requirements and costs.
-* **Acceptance Criteria 4:** Call-to-Action (CTA) buttons direct users to register via the official WhatsApp/Phone contacts: 082191927620 or 082193234971.
+## 🗄️ 5. High-Level Database Schema (MySQL)
 
-### Epic 2: Course & Pricing Management
-**User Story:** As an Admin, I want to manage the catalog of courses so the website and bot always display accurate information.
-* **Acceptance Criteria 1:** Admin can create, edit, or delete a course.
-* **Acceptance Criteria 2:** Course entries must capture Category, Program, Specifics, Duration, Price, Registration Fee, and Remarks.
+- **`users`**: id, name, role (admin/instructor/student), email, phone, created_at
+- **`courses`**: id, name, type (manual/auto), price, total_sessions
+- **`students_crm`**: id, user_id, status (lead/active/completed), notes, progress_score
+- **`sessions`**: id, student_id, instructor_id, start_time, end_time, status (scheduled/completed/cancelled)
+- **`session_logs`**: id, session_id, raw_instructor_notes, ai_structured_analysis, recommended_next_steps
 
-### Epic 3: Instructor & Schedule Management
-**User Story:** As an Admin, I want to manage instructor profiles and their weekly schedules to show transparency.
-* **Acceptance Criteria 1:** Admin can manage profiles (Name, Gender, Age, Vehicle, Transmission).
-* **Acceptance Criteria 2:** Admin has access to a weekly grid (Senin - Minggu) with predefined time slots.
-* **Acceptance Criteria 3:** Admin can manually type a student's name into a time slot to block it out after an offline booking is confirmed.
+---
 
-### Epic 4: Administrative Mechanisms
-**User Story:** As an Admin, I want to outline the SIM A mechanism steps so users know requirements and costs.
-* **Acceptance Criteria 1:** Admin can add/edit steps (e.g., "Health Certificate").
-* **Acceptance Criteria 2:** Steps include Issuing Body, Cost, and Notes.
+## 🔗 6. APIs and Workflow Orchestration
 
-### Epic 5: API & System Integrations
-**User Story:** As the AI RAG Bot, I need to pull the latest institutional data so I can generate accurate responses.
-* **Acceptance Criteria 1:** The Golang backend must expose `GET /api/rag/knowledge-sync`.
-* **Acceptance Criteria 2:** The payload must be a flattened text/markdown string optimized for LLM semantic search.
+1. **Python FastAPI Backend:** Serves REST endpoints (e.g., `POST /api/sessions/notes`, `GET /api/courses`).
+2. **LangChain Tools:** 
+   - `UpdateCRMTool`: Allows the Gemini agent to execute SQL updates to the CRM based on natural language reasoning.
+   - `CheckScheduleTool`: Allows the chatbot to check MySQL for available slots.
+3. **n8n Automation:**
+   - Triggers WhatsApp or Email notifications to students when the AI suggests a follow-up course.
+   - Sends daily schedule summaries to instructors via email/messaging.
+
+---
+
+## 🚀 7. Proposed Development Phases
+
+### Phase 1: Foundation & Landing Page
+- Initialize Python/FastAPI backend & MySQL schema.
+- Finalize Angular Landing Page components (Pricing, Hero, SIM Mechanism).
+- Connect Frontend to Backend for dynamic course/pricing data.
+
+### Phase 2: Dashboard & Core CRUD
+- Implement Admin/Instructor Authentication.
+- Build the CRM interface and Session Management views in Angular.
+- Build standard CRUD APIs in Python.
+
+### Phase 3: AI & Automation
+- Integrate LangChain and Gemini API into the Python backend.
+- Build the public-facing Chatbot capable of RAG (Retrieval-Augmented Generation) on Handayani FAQs.
+- Implement the **AI Session Analyst** to auto-process instructor notes.
+- Connect n8n workflows for notifications.
