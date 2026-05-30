@@ -93,3 +93,7 @@ cypress/videos/
 
 # Claude IDE
 .claude/
+# Python backend
+backend/.venv/
+backend/**/__pycache__/
+*.py[cod]
