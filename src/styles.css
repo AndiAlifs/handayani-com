@@ -1,93 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Outfit:wght@300;400;500;700;800&display=swap');
 
 :root {
-  /* Primary Palette - Deep Blue & Gold */
-  --color-primary: #1a365d;
-  --color-primary-light: #2a4a7f;
-  --color-primary-dark: #0f2440;
-  --color-accent: #1e3a8a;
-  --color-accent-light: #3b82f6;
-  --color-accent-dark: #172554;
+  /* Neon Night Drive Aesthetic */
+  
+  /* Core Colors */
+  --color-bg: #050507;
+  --color-bg-secondary: #0c0c11;
+  --color-bg-card: rgba(15, 15, 20, 0.7);
+  --color-surface: #15151c;
+  
+  --color-text: #f0f0f5;
+  --color-text-secondary: #a0a0b0;
+  
+  /* Neons */
+  --color-neon-yellow: #d4ff00;
+  --color-neon-pink: #ff007a;
+  --color-neon-purple: #9d00ff;
+  --color-neon-blue: #00e5ff;
 
-  /* Neutrals (Light Mode Default) */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f0f4f8;
-  --color-bg-card: #ffffff;
-  --color-bg-card-hover: #f8fafc;
-  --color-surface: rgba(255, 255, 255, 0.9);
-  --color-text: #0f172a;
-  --color-text-secondary: #334155;
-  --color-text-muted: #64748b;
-  --color-border: rgba(30, 58, 138, 0.1);
-  --color-border-hover: rgba(30, 58, 138, 0.4);
-  --color-overlay-light: rgba(30, 58, 138, 0.03);
-  --color-overlay-hover: rgba(30, 58, 138, 0.06);
-
+  --color-border: rgba(212, 255, 0, 0.2);
+  --color-border-bright: rgba(212, 255, 0, 0.8);
+  
   /* Semantic */
-  --color-success: #22c55e;
-  --color-success-bg: rgba(34, 197, 94, 0.1);
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Gradients (Light Mode Default) */
-  --gradient-primary: linear-gradient(135deg, #1a365d 0%, #2a4a7f 50%, #1a365d 100%);
-  --gradient-accent: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #172554 100%);
-  --gradient-hero: linear-gradient(160deg, #ffffff 0%, #f0f4f8 40%, #e0e7ff 100%);
-  --gradient-card: linear-gradient(145deg, #ffffff, rgba(240, 244, 248, 0.6));
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
-
-  /* Shadows (Light Mode Default) */
-  --shadow-sm: 0 1px 3px rgba(30, 58, 138, 0.08);
-  --shadow-md: 0 4px 12px rgba(30, 58, 138, 0.08);
-  --shadow-lg: 0 8px 32px rgba(30, 58, 138, 0.1);
-  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.3);
-  --shadow-card: 0 8px 32px rgba(30, 58, 138, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --color-success: #00ff66;
+  --color-warning: #ffb700;
+  --color-danger: #ff003c;
+  --color-info: var(--color-neon-blue);
 
   /* Typography */
-  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
 
   /* Spacing */
-  --section-pad: clamp(3rem, 6vw, 6rem);
-  --container-max: 1200px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --section-pad: clamp(4rem, 8vw, 8rem);
+  --container-max: 1300px;
+  
+  /* Borders & Shadows */
+  --radius-sm: 0px; /* Brutalist sharp corners */
+  --radius-md: 4px;
+  --radius-lg: 12px;
+  
+  --shadow-neon-yellow: 0 0 15px rgba(212, 255, 0, 0.4), 0 0 30px rgba(212, 255, 0, 0.2);
+  --shadow-neon-pink: 0 0 15px rgba(255, 0, 122, 0.4), 0 0 30px rgba(255, 0, 122, 0.2);
+  --shadow-neon-purple: 0 0 15px rgba(157, 0, 255, 0.4), 0 0 30px rgba(157, 0, 255, 0.2);
+  
+  /* Gradients */
+  --gradient-cyber: linear-gradient(135deg, var(--color-neon-pink) 0%, var(--color-neon-purple) 100%);
+  --gradient-bg: radial-gradient(circle at top right, rgba(157, 0, 255, 0.15), transparent 40%),
+                 radial-gradient(circle at bottom left, rgba(212, 255, 0, 0.1), transparent 40%);
 
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-base: 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-slow: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.dark {
-  /* Neutrals */
-  --color-bg: #0b1120;
-  --color-bg-secondary: #111827;
-  --color-bg-card: #1a2332;
-  --color-bg-card-hover: #1f2b3d;
-  --color-surface: rgba(26, 35, 50, 0.8);
-  --color-text: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-border: rgba(148, 163, 184, 0.12);
-  --color-border-hover: rgba(30, 58, 138, 0.3);
-  --color-overlay-light: rgba(255, 255, 255, 0.03);
-  --color-overlay-hover: rgba(255, 255, 255, 0.06);
-
-  /* Gradients */
-  --gradient-hero: linear-gradient(160deg, #0b1120 0%, #1a365d 40%, #0f2440 70%, #0b1120 100%);
-  --gradient-card: linear-gradient(145deg, rgba(26, 35, 50, 0.9), rgba(15, 36, 64, 0.6));
-  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(30, 58, 138, 0.15);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+/* Light mode override to a high contrast "Day Drive" if needed, but we force Dark mode for this aesthetic */
+.light {
+  --color-bg: #f4f4f5;
+  --color-bg-secondary: #ffffff;
+  --color-bg-card: rgba(255, 255, 255, 0.9);
+  --color-surface: #e4e4e7;
+  --color-text: #09090b;
+  --color-text-secondary: #52525b;
+  --color-border: rgba(9, 9, 11, 0.2);
+  --color-border-bright: rgba(9, 9, 11, 0.8);
+  --shadow-neon-yellow: 4px 4px 0px rgba(9, 9, 11, 1);
+  --shadow-neon-pink: 4px 4px 0px rgba(9, 9, 11, 1);
 }
 
 /* Reset */
@@ -99,22 +77,36 @@
 
 html {
   scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: var(--font-body);
   background-color: var(--color-bg);
+  background-image: var(--gradient-bg);
+  background-attachment: fixed;
   color: var(--color-text);
   line-height: 1.6;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Grid overlay for texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: -1;
+  pointer-events: none;
 }
 
 a {
   text-decoration: none;
   color: inherit;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 button {
@@ -133,118 +125,177 @@ img {
 .container {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 clamp(1rem, 3vw, 2rem);
+  padding: 0 clamp(1.5rem, 4vw, 3rem);
+}
+
+.section {
+  padding: var(--section-pad) 0;
+}
+
+.section-alt {
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
   color: var(--color-text);
-  text-align: center;
-  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  position: relative;
+  display: inline-block;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 8px;
+  background: var(--color-neon-yellow);
 }
 
 .section-subtitle {
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  font-size: clamp(1.1rem, 2vw, 1.25rem);
   color: var(--color-text-secondary);
-  text-align: center;
-  margin-bottom: 3rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-bottom: 4rem;
+  max-width: 700px;
+  font-weight: 300;
 }
 
 .accent-text {
-  color: var(--color-accent);
+  color: var(--color-neon-yellow);
+  text-shadow: 0 0 10px rgba(212, 255, 0, 0.3);
 }
 
-.glass-card {
-  background: var(--gradient-card);
-  backdrop-filter: blur(12px);
+.accent-text-pink {
+  color: var(--color-neon-pink);
+  text-shadow: 0 0 10px rgba(255, 0, 122, 0.3);
+}
+
+/* Neo-brutalist / Cyberpunk Card */
+.glass-card, .cyber-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-sm);
+  padding: 2rem;
   transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
-.glass-card:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-card), var(--shadow-glow);
-  transform: translateY(-2px);
+.cyber-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-neon-purple);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--transition-base);
 }
 
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.cyber-card:hover {
+  border-color: var(--color-border-bright);
+  transform: translateY(-5px);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.cyber-card:hover::before {
+  transform: scaleY(1);
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2.5rem;
+  background: var(--color-neon-yellow);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  transform: translateX(-101%);
+  transition: transform var(--transition-base);
+  z-index: -1;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(30, 58, 138, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(30, 58, 138, 0.4); }
+.btn-primary:hover {
+  color: var(--color-neon-yellow);
+  border-color: var(--color-neon-yellow);
+  box-shadow: var(--shadow-neon-yellow);
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+.btn-primary:hover::before {
+  transform: translateX(0);
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease forwards;
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2.5rem;
+  background: transparent;
+  border: 2px solid var(--color-border-bright);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease forwards;
+.btn-secondary:hover {
+  background: rgba(212, 255, 0, 0.1);
+  border-color: var(--color-neon-yellow);
+  color: var(--color-neon-yellow);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
-
 ::-webkit-scrollbar-track {
   background: var(--color-bg);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary-light);
-  border-radius: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-dark);
+  background: var(--color-neon-yellow);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(30, 58, 138, 0.3);
-  color: var(--color-text);
+  background: var(--color-neon-pink);
+  color: #fff;
 }

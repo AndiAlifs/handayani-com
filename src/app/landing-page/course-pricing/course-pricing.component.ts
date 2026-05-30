@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService } from '../../services/api.service';
-import { Course } from '../../services/mock-data';
+import { ApiService } from '../../core/services/api.service';
+import { Course } from '../../core/models/course.model';
 
 @Component({
   selector: 'app-course-pricing',

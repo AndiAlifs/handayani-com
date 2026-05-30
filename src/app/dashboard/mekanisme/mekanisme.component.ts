@@ -4,22 +4,20 @@ import { ApiService } from '../../core/services/api.service';
 import { Mechanism } from '../../core/models/mechanism.model';
 
 @Component({
-  selector: 'app-sim-mechanism',
+  selector: 'app-mekanisme',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './sim-mechanism.component.html',
-  styleUrl: './sim-mechanism.component.css'
+  templateUrl: './mekanisme.component.html',
+  styleUrl: './mekanisme.component.css'
 })
-export class SimMechanismComponent implements OnInit {
+export class MekanismeComponent implements OnInit {
   mechanisms: Mechanism[] = [];
-  totalCost = 0;
 
   constructor(private api: ApiService) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.api.getMechanisms().subscribe(data => {
       this.mechanisms = data;
-      this.totalCost = data.reduce((sum, m) => sum + m.cost, 0);
     });
   }
 

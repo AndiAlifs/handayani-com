@@ -1,0 +1,62 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Overview</h1>
+      <p class="page-subtitle">Ringkasan aktivitas dan performa YPA Handayani</p>
+    </div>
+  </header>
+
+  <div class="stats-grid">
+    <div class="stat-card glass-card">
+      <div class="stat-icon-wrapper active-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ stats.activeStudents }}</span>
+        <span class="stat-label">Siswa Aktif</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon-wrapper lead-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ stats.leads }}</span>
+        <span class="stat-label">Leads Baru</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon-wrapper session-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ stats.upcomingSessions }}</span>
+        <span class="stat-label">Sesi Mendatang</span>
+      </div>
+    </div>
+
+    <div class="stat-card glass-card">
+      <div class="stat-icon-wrapper complete-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-value">{{ stats.completed }}</span>
+        <span class="stat-label">Siswa Lulus</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-content">
+    <div class="welcome-banner glass-card">
+      <div class="banner-content">
+        <h2>Selamat Datang di Panel Manajemen</h2>
+        <p>Gunakan menu di sebelah kiri untuk mengelola data kursus, instruktur, memantau leads, dan mengatur sesi pelatihan.</p>
+      </div>
+      <div class="banner-illustration">
+        <span style="font-size: 5rem;">🚀</span>
+      </div>
+    </div>
+  </div>
+</div>

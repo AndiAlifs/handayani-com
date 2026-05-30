@@ -1,46 +1,42 @@
 <div class="container">
-  <h2 class="section-title">Mekanisme <span class="accent-text">SIM A & C</span></h2>
-  <p class="section-subtitle">Langkah-langkah dan persyaratan untuk mendapatkan SIM A dan SIM C</p>
+  <h2 class="section-title">MEKANISME <span class="accent-text">SIM A/C</span></h2>
+  <p class="section-subtitle">> BYPASS UJIAN TEORI & PRAKTIK DENGAN SERTIFIKASI YPA_</p>
 
-  <div class="highlight-box glass-card">
+  <div class="highlight-box cyber-card">
     <div class="highlight-icon">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Shield/Alert Icon -->
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-neon-yellow)" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="M9 12l2 2 4-4"/>
+        <path d="M12 8v4"/>
+        <path d="M12 16h.01"/>
       </svg>
     </div>
     <div class="highlight-content">
-      <h3 class="highlight-title">Bebas Ujian Teori & Praktik!</h3>
-      <p class="highlight-desc">Sertifikat dari <strong>YPA Handayani Kendari</strong> bertindak sebagai <em>underlying</em> (syarat pengganti). Anda <strong>tidak perlu lagi</strong> mengikuti Ujian Teori dan Ujian Praktik SIM di Satpas.</p>
+      <h3 class="highlight-title">SYSTEM OVERRIDE: BEBAS UJIAN</h3>
+      <p class="highlight-desc">Sertifikat dari <strong>YPA HANDAYANI</strong> bertindak sebagai <em>underlying</em> (syarat pengganti). Anda <strong>TIDAK PERLU</strong> mengikuti Ujian Teori dan Praktik di Satpas.</p>
     </div>
   </div>
 
   <div class="mechanism-timeline">
     @for (mech of mechanisms; track mech.id; let i = $index) {
-      <div class="timeline-item glass-card" [attr.id]="'mech-' + mech.id">
+      <div class="timeline-item cyber-card" [attr.id]="'mech-' + mech.id">
         <div class="timeline-connector">
-          <div class="timeline-number">{{ i + 1 }}</div>
-          @if (i < mechanisms.length - 1) {
-            <div class="timeline-line"></div>
-          }
+          <div class="timeline-number">0{{ i + 1 }}</div>
         </div>
         <div class="timeline-content">
-          <h3 class="timeline-title">{{ mech.requirementName }}</h3>
+          <h3 class="timeline-title">{{ mech.requirementName | uppercase }}</h3>
           <div class="timeline-details">
             <div class="detail-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/></svg>
-              <span class="detail-label">Instansi:</span>
-              <span>{{ mech.issuingBody }}</span>
+              <span class="detail-label">INSTANSI:</span>
+              <span class="accent-text-pink">{{ mech.issuingBody | uppercase }}</span>
             </div>
             <div class="detail-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span class="detail-label">Biaya:</span>
+              <span class="detail-label">BIAYA:</span>
               <span class="detail-cost" [class.free]="mech.cost === 0">{{ formatPrice(mech.cost) }}</span>
             </div>
             @if (mech.notes) {
               <div class="detail-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span class="detail-note">{{ mech.notes }}</span>
+                <span class="detail-note">// {{ mech.notes | uppercase }}</span>
               </div>
             }
           </div>
@@ -49,9 +45,9 @@
     }
   </div>
 
-  <div class="total-cost glass-card">
-    <div class="total-label">Estimasi Total Biaya</div>
+  <div class="total-cost cyber-card">
+    <div class="total-label">ESTIMASI BIAYA TOTAL</div>
     <div class="total-value">{{ formatPrice(totalCost) }}</div>
-    <div class="total-note">*Biaya dapat berubah sesuai kebijakan instansi terkait</div>
+    <div class="total-note">> DATA DAPAT BERUBAH SESUAI KEBIJAKAN INSTANSI</div>
   </div>
 </div>

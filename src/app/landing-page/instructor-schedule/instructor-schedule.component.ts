@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService } from '../../services/api.service';
-import { Instructor } from '../../services/mock-data';
+import { ApiService } from '../../core/services/api.service';
+import { Instructor } from '../../core/models/instructor.model';
 
 @Component({
   selector: 'app-instructor-schedule',

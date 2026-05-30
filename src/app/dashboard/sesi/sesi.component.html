@@ -1,0 +1,191 @@
+<div class="dashboard-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Sesi Pelatihan</h1>
+      <p class="page-subtitle">Pantau jadwal mengemudi dan input catatan instruktur</p>
+    </div>
+  </header>
+
+  <!-- Scheduled Sessions -->
+  <section class="session-section">
+    <h2 class="section-heading">Sesi Mendatang</h2>
+    <div class="session-grid">
+      @for (session of getSessionsByStatus('scheduled'); track session.id) {
+        <div class="session-card glass-card">
+          <div class="card-top">
+            <span class="session-badge">Sesi {{ session.sessionNumber }} / {{ session.totalSessions }}</span>
+            <span class="status-badge status-scheduled">Akan Datang</span>
+          </div>
+          <h3 class="student-name">{{ session.studentName }}</h3>
+          <div class="course-info">{{ session.courseName }}</div>
+          
+          <div class="session-details">
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>{{ formatDate(session.startTime) }}</span>
+            </div>
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>{{ formatTime(session.startTime) }} - {{ formatTime(session.endTime) }}</span>
+            </div>
+            @if (authService.isAdmin()) {
+              <div class="detail-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Instruktur: {{ session.instructorName }}</span>
+              </div>
+            }
+          </div>
+          
+          <div class="card-actions">
+            <button class="btn-primary w-full" (click)="selectSession(session)">
+              Input Catatan Sesi
+            </button>
+          </div>
+        </div>
+      }
+      @if (getSessionsByStatus('scheduled').length === 0) {
+        <div class="empty-state">Tidak ada sesi mendatang.</div>
+      }
+    </div>
+  </section>
+
+  <!-- Completed Sessions -->
+  <section class="session-section mt-4">
+    <h2 class="section-heading">Riwayat Sesi & Analisis AI</h2>
+    <div class="session-grid">
+      @for (session of getSessionsByStatus('completed'); track session.id) {
+        <div class="session-card glass-card">
+          <div class="card-top">
+            <span class="session-badge">Sesi {{ session.sessionNumber }} / {{ session.totalSessions }}</span>
+            <span class="status-badge status-completed">Selesai</span>
+          </div>
+          <h3 class="student-name">{{ session.studentName }}</h3>
+          <div class="session-details mb-3">
+            <div class="detail-row">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>{{ formatDate(session.startTime) }}</span>
+            </div>
+          </div>
+          
+          @if (session.aiAnalysis) {
+            <div class="ai-summary">
+              <div class="ai-header">
+                <span class="ai-icon">✨</span> AI Session Analyst
+              </div>
+              <div class="ai-focus">
+                <strong>Fokus Selanjutnya:</strong><br>
+                {{ session.aiAnalysis.recommendedNextFocus }}
+              </div>
+            </div>
+          }
+          
+          <div class="card-actions mt-auto">
+            <button class="btn-secondary w-full" (click)="selectSession(session)">
+              Lihat Detail Analisis
+            </button>
+          </div>
+        </div>
+      }
+      @if (getSessionsByStatus('completed').length === 0) {
+        <div class="empty-state">Belum ada riwayat sesi.</div>
+      }
+    </div>
+  </section>
+
+  <!-- Modal for Session Notes & Analysis -->
+  @if (selectedSession) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            {{ selectedSession.status === 'completed' ? 'Detail Sesi' : 'Input Catatan Sesi' }}
+          </h2>
+          <button class="close-btn" (click)="closeModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="modal-info-bar">
+            <div>
+              <strong>Siswa:</strong> {{ selectedSession.studentName }}
+            </div>
+            <div>
+              <strong>Pertemuan:</strong> {{ selectedSession.sessionNumber }} dari {{ selectedSession.totalSessions }}
+            </div>
+          </div>
+
+          @if (selectedSession.status === 'scheduled') {
+            <!-- Input Form for Instructor -->
+            <div class="form-group mt-3">
+              <label for="notes" class="form-label">Catatan Evaluasi (Natural Language)</label>
+              <textarea 
+                id="notes" 
+                class="form-input textarea" 
+                rows="5"
+                placeholder="Ketik evaluasi jujur Anda di sini. Misal: 'Siswa sudah bagus dalam pengereman tapi masih sering mati mesin saat tanjakan...'"
+                [(ngModel)]="newNotes"
+              ></textarea>
+              <p class="form-help">Catatan ini akan dianalisis oleh AI untuk memperbarui progress CRM siswa.</p>
+            </div>
+          } @else {
+            <!-- View Completed Analysis -->
+            <div class="raw-notes-box">
+              <div class="box-label">Catatan Asli Instruktur</div>
+              <p>{{ selectedSession.rawNotes }}</p>
+            </div>
+
+            @if (selectedSession.aiAnalysis) {
+              <div class="ai-analysis-container">
+                <div class="ai-badge">✨ AI Analysis Result</div>
+                
+                <div class="analysis-grid">
+                  <div class="analysis-box positive">
+                    <h4>Kekuatan (Strengths)</h4>
+                    <ul>
+                      @for (item of selectedSession.aiAnalysis.strengths; track item) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+                  <div class="analysis-box negative">
+                    <h4>Kelemahan (Weaknesses)</h4>
+                    <ul>
+                      @for (item of selectedSession.aiAnalysis.weaknesses; track item) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="analysis-box focus">
+                  <h4>Rekomendasi Fokus Sesi Berikutnya</h4>
+                  <p>{{ selectedSession.aiAnalysis.recommendedNextFocus }}</p>
+                </div>
+
+                @if (selectedSession.aiAnalysis.upsellRecommendation) {
+                  <div class="analysis-box upsell">
+                    <h4>Peluang Upsell Otomatis</h4>
+                    <p>{{ selectedSession.aiAnalysis.upsellRecommendation }}</p>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Tutup</button>
+          
+          @if (selectedSession.status === 'scheduled') {
+            <button class="btn-primary" (click)="submitNotes()" [disabled]="!newNotes.trim() || isAnalyzing">
+              @if (isAnalyzing) {
+                <span class="spinner"></span> Menganalisis...
+              } @else {
+                Kirim & Analisis dengan AI ✨
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
