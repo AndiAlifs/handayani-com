@@ -44,11 +44,14 @@
 }
 
 .highlight-desc strong {
-  color: #fff;
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 .highlight-desc em {
-  color: var(--color-text-secondary);
+  color: var(--color-accent);
+  font-style: normal;
+  font-weight: 600;
 }
 
 @media (max-width: 640px) {
