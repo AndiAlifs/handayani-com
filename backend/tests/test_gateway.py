@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import respx
 from fastapi.testclient import TestClient
@@ -17,7 +19,7 @@ def test_login_rewrites_to_go_login():
     assert r.status_code == 200
     assert r.json() == {"token": "jwt123"}
     assert route.called
-    assert route.calls.last.request.content == b'{"username":"a","password":"b"}'
+    assert json.loads(route.calls.last.request.content) == {"username": "a", "password": "b"}
 
 
 @respx.mock
@@ -40,9 +42,21 @@ def test_admin_passthrough_with_query():
     route = respx.get(f"{GO}/api/admin/records").mock(
         return_value=httpx.Response(200, json=[])
     )
-    r = client.get("/api/admin/records", headers={"Authorization": "Bearer x"})
+    r = client.get("/api/admin/records?date=2024-01-01", headers={"Authorization": "Bearer x"})
     assert r.status_code == 200
     assert route.called
+    assert "date=2024-01-01" in str(route.calls.last.request.url)
+
+
+@respx.mock
+def test_instructor_passthrough():
+    route = respx.get(f"{GO}/api/instructor/students").mock(
+        return_value=httpx.Response(200, json=[])
+    )
+    r = client.get("/api/instructor/students", headers={"Authorization": "Bearer y"})
+    assert r.status_code == 200
+    assert route.called
+    assert route.calls.last.request.headers["authorization"] == "Bearer y"
 
 
 @respx.mock
