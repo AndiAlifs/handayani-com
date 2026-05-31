@@ -22,12 +22,13 @@ export class AuthService {
   private router = inject(Router);
   private readonly USER_KEY = 'handayani_auth_user';
   private readonly TOKEN_KEY = 'token';
-  public currentUser = signal<AuthUser | null>(null);
+  private readonly _currentUser = signal<AuthUser | null>(null);
+  readonly currentUser = this._currentUser.asReadonly();
 
   constructor() {
     const stored = localStorage.getItem(this.USER_KEY);
     if (stored) {
-      try { this.currentUser.set(JSON.parse(stored)); }
+      try { this._currentUser.set(JSON.parse(stored)); }
       catch { localStorage.removeItem(this.USER_KEY); }
     }
   }
@@ -45,9 +46,10 @@ export class AuthService {
           isSuperAdmin: !!u.is_super_admin,
           officeId: u.office_id ?? null,
         };
+        if (!res.token) throw new Error('missing token');
         localStorage.setItem(this.TOKEN_KEY, res.token);
         localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-        this.currentUser.set(user);
+        this._currentUser.set(user);
         return true;
       }),
       catchError(() => of(false)),
@@ -55,7 +57,7 @@ export class AuthService {
   }
 
   logout(): void {
-    this.currentUser.set(null);
+    this._currentUser.set(null);
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.router.navigate(['/login']);

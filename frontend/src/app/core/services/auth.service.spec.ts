@@ -17,6 +17,10 @@ describe('AuthService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
+  afterEach(() => {
+    http.verify();
+  });
+
   it('stores token + user on successful login', (done) => {
     service.login('karyawan1', 'karyawan1').subscribe((ok) => {
       expect(ok).toBeTrue();
@@ -31,7 +35,7 @@ describe('AuthService', () => {
   });
 
   it('isManager true for manager+super admin', () => {
-    (service as any).currentUser.set({ id: 1, username: 'admin', name: 'Admin', role: 'manager', isSuperAdmin: true });
+    (service as any)._currentUser.set({ id: 1, username: 'admin', name: 'Admin', role: 'manager', isSuperAdmin: true });
     expect(service.isManager()).toBeTrue();
     expect(service.isSuperAdmin()).toBeTrue();
   });
