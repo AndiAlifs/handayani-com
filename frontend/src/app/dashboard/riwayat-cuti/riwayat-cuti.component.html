@@ -1,0 +1,63 @@
+<section class="p-6 space-y-4">
+  <h1 class="text-2xl font-semibold">Riwayat Cuti</h1>
+
+  @if (loading()) {
+    <div class="flex items-center gap-2 text-gray-500 py-8 justify-center">
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+      <span>Memuat data...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="rounded bg-red-50 border-l-4 border-red-500 p-4 text-red-700 text-sm">
+      {{ errorMessage() }}
+    </div>
+  } @else if (leaveHistory().length === 0) {
+    <div class="rounded-lg border bg-white p-12 text-center text-gray-500">
+      <p class="text-lg font-medium">Belum ada riwayat cuti</p>
+      <p class="text-sm mt-1">Ajukan cuti melalui menu Permohonan Cuti.</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (leave of leaveHistory(); track leave.id) {
+        <div class="rounded-lg p-5 shadow-sm" [class]="cardClass(leave.status)">
+          <div class="flex items-start justify-between mb-3">
+            <span [class]="statusClass(leave.status)">{{ statusText(leave.status) }}</span>
+            <span class="text-xs text-gray-400">#{{ leave.id }}</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div>
+              <p class="text-xs text-gray-500 mb-0.5">Tanggal Mulai</p>
+              <p class="font-semibold text-gray-900">{{ leave.start_date | date:'EEEE, dd MMMM yyyy' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-0.5">Tanggal Selesai</p>
+              <p class="font-semibold text-gray-900">{{ leave.end_date | date:'EEEE, dd MMMM yyyy' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-500 mb-0.5">Durasi</p>
+              <p class="font-semibold text-gray-900">{{ calculateDuration(leave.start_date, leave.end_date) }} hari</p>
+            </div>
+            <div class="sm:col-span-2">
+              <p class="text-xs text-gray-500 mb-0.5">Alasan</p>
+              <p class="text-gray-900 bg-white bg-opacity-60 rounded p-2">{{ leave.reason }}</p>
+            </div>
+          </div>
+
+          @if (leave.status === 'pending') {
+            <div class="mt-3 rounded bg-yellow-100 p-2.5 text-xs text-yellow-800">
+              Permohonan cuti Anda sedang menunggu persetujuan dari manajer.
+            </div>
+          } @else if (leave.status === 'approved') {
+            <div class="mt-3 rounded bg-green-100 p-2.5 text-xs text-green-800">
+              Cuti Anda telah disetujui. Selamat menikmati waktu libur!
+            </div>
+          } @else if (leave.status === 'rejected') {
+            <div class="mt-3 rounded bg-red-100 p-2.5 text-xs text-red-800">
+              Mohon maaf, permohonan cuti Anda ditolak. Silakan hubungi manajer untuk informasi lebih lanjut.
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>
