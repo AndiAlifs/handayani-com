@@ -1,0 +1,56 @@
+<section class="p-6 space-y-4">
+  <h1 class="text-2xl font-semibold">Absensi</h1>
+
+  <div class="rounded-lg border bg-white p-4">
+    <p class="text-sm text-gray-500">Status hari ini</p>
+    @if (today(); as t) {
+      <p class="text-lg font-medium">
+        {{ t.status }}
+        @if (t.is_late) {
+          <span>(Terlambat {{ t.minutes_late }} menit)</span>
+        }
+      </p>
+      @if (t.clock_in_time) {
+        <div class="mt-2 grid grid-cols-2 gap-3 text-sm text-gray-700">
+          <div>
+            <span class="text-gray-500">Clock-In:</span>
+            <span class="ml-1 font-medium">{{ t.clock_in_time | date:'HH:mm' }}</span>
+          </div>
+          @if (t.clock_out_time) {
+            <div>
+              <span class="text-gray-500">Clock-Out:</span>
+              <span class="ml-1 font-medium">{{ t.clock_out_time | date:'HH:mm' }}</span>
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <p class="text-lg font-medium">Belum absen</p>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex items-center gap-2 text-gray-500">
+      <div class="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+      <span class="text-sm">Mengambil lokasi GPS...</span>
+    </div>
+  }
+
+  <div class="flex gap-3">
+    <button (click)="clockIn()" [disabled]="loading()"
+      class="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50 hover:bg-blue-700 transition-colors">
+      Clock In
+    </button>
+    <button (click)="clockOut()" [disabled]="loading()"
+      class="rounded bg-gray-700 px-4 py-2 text-white disabled:opacity-50 hover:bg-gray-800 transition-colors">
+      Clock Out
+    </button>
+  </div>
+
+  @if (message()) {
+    <p class="rounded bg-green-50 border-l-4 border-green-500 p-3 text-green-700 text-sm">{{ message() }}</p>
+  }
+  @if (error()) {
+    <p class="rounded bg-red-50 border-l-4 border-red-500 p-3 text-red-700 text-sm">{{ error() }}</p>
+  }
+</section>
