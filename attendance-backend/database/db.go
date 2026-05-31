@@ -35,7 +35,7 @@ func Connect() {
 		dbPort = "3306"
 	}
 	if dbName == "" {
-		dbName = "attendance_db"
+		dbName = "handayani"
 	}
 
 	// Construct DSN

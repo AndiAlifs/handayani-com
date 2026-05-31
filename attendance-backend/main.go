@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"field-attendance-system/auth"
 	"field-attendance-system/database"
@@ -142,6 +143,10 @@ func main() {
 		}
 	}
 
-	log.Println("Server starting on port 8080...")
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8090"
+	}
+	log.Printf("Server starting on port %s...", port)
+	r.Run(":" + port)
 }
