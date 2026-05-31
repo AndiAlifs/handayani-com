@@ -36,18 +36,14 @@ export class LoginComponent {
 
     this.isLoading.set(true);
     this.errorMessage.set('');
-
-    // Simulate network delay
-    setTimeout(() => {
-      const success = this.authService.login(this.username, this.password);
+    this.authService.login(this.username, this.password).subscribe((success) => {
       this.isLoading.set(false);
-
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
         this.errorMessage.set('Username atau password salah. Silakan coba lagi.');
       }
-    }, 600);
+    });
   }
 
   togglePassword(): void {
