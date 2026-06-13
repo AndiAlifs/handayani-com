@@ -19,29 +19,6 @@ CREATE TABLE IF NOT EXISTS courses (
   updated_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
--- ── Instructors & Schedules (Epic 3) ────────────────────────
-CREATE TABLE IF NOT EXISTS instructors (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  name         VARCHAR(128) NOT NULL,
-  gender       VARCHAR(16)  NOT NULL,
-  age          INT          NOT NULL,
-  vehicle      VARCHAR(64)  NOT NULL,
-  transmission VARCHAR(32)  NOT NULL,
-  created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-  updated_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS schedules (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
-  instructor_id INT          NOT NULL,
-  day           VARCHAR(16)  NOT NULL,
-  time_slot     VARCHAR(32)  NOT NULL,
-  status        VARCHAR(128) NOT NULL DEFAULT 'Tersedia',
-  CONSTRAINT fk_schedule_instructor
-    FOREIGN KEY (instructor_id) REFERENCES instructors(id) ON DELETE CASCADE,
-  UNIQUE KEY uq_slot (instructor_id, day, time_slot)
-) ENGINE=InnoDB;
-
 -- ── Administrative Mechanisms (Epic 4) ──────────────────────
 CREATE TABLE IF NOT EXISTS mechanisms (
   id               INT AUTO_INCREMENT PRIMARY KEY,

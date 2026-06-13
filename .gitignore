@@ -97,3 +97,7 @@ cypress/videos/
 backend/.venv/
 backend/**/__pycache__/
 *.py[cod]
+
+# Go attendance-backend — compiled binaries
+attendance-backend/*.exe
+attendance-backend/field-attendance-system

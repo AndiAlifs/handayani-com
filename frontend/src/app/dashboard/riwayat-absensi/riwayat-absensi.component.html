@@ -1,0 +1,133 @@
+<section class="p-6 space-y-4">
+  <h1 class="text-2xl font-semibold">Riwayat Absensi</h1>
+
+  @if (isLoading()) {
+    <div class="flex items-center gap-2 text-gray-500 py-8 justify-center">
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+      <span>Memuat data...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="rounded bg-red-50 border-l-4 border-red-500 p-4 text-red-700 text-sm">
+      {{ errorMessage() }}
+    </div>
+  } @else if (records().length === 0) {
+    <div class="rounded-lg border bg-white p-12 text-center text-gray-500">
+      <p class="text-lg font-medium">Belum ada riwayat absensi</p>
+      <p class="text-sm mt-1">Anda belum pernah melakukan clock-in.</p>
+    </div>
+  } @else {
+    <div class="text-sm text-gray-500">Total: {{ total() }} rekaman</div>
+
+    <!-- Desktop table -->
+    <div class="hidden md:block overflow-x-auto rounded-lg border bg-white">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <tr>
+            <th class="px-4 py-3 text-left">Tanggal &amp; Clock-In</th>
+            <th class="px-4 py-3 text-left">Clock-Out</th>
+            <th class="px-4 py-3 text-left">Jam Kerja</th>
+            <th class="px-4 py-3 text-left">Kantor</th>
+            <th class="px-4 py-3 text-left">Jarak</th>
+            <th class="px-4 py-3 text-left">Keterlambatan</th>
+            <th class="px-4 py-3 text-left">Lokasi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (rec of records(); track rec.id) {
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900">{{ formatDate(rec.clock_in_time) }}</div>
+                <div class="text-gray-500">{{ formatTime(rec.clock_in_time) }}</div>
+              </td>
+              <td class="px-4 py-3">
+                @if (rec.clock_out_time) {
+                  {{ formatTime(rec.clock_out_time) }}
+                } @else {
+                  <span class="italic text-gray-400">Belum clock-out</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                @if (rec.work_hours != null) {
+                  <span class="font-semibold text-blue-600">{{ rec.work_hours | number:'1.1-1' }} jam</span>
+                } @else {
+                  <span class="text-gray-400">-</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                @if (rec.approved_office) {
+                  <div class="font-medium text-gray-900">{{ rec.approved_office.name }}</div>
+                  <div class="text-xs text-gray-500">{{ rec.approved_office.address }}</div>
+                } @else {
+                  <div class="text-gray-400">-</div>
+                  <div class="text-xs text-orange-600 font-semibold">Di luar radius kantor</div>
+                }
+              </td>
+              <td class="px-4 py-3">{{ rec.distance | number:'1.0-0' }} m</td>
+              <td class="px-4 py-3">
+                @if (rec.is_late) {
+                  <span class="text-red-600 font-medium">Terlambat {{ rec.minutes_late }} menit</span>
+                } @else {
+                  <span class="text-green-600 font-medium">Tepat waktu</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                <button (click)="viewLocation(rec.latitude, rec.longitude)"
+                  class="text-blue-600 hover:underline text-sm">Lihat Peta</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3">
+      @for (rec of records(); track rec.id) {
+        <div class="rounded-lg border bg-white p-4 space-y-2">
+          <div class="font-medium text-gray-900">{{ formatDate(rec.clock_in_time) }}</div>
+          <div class="grid grid-cols-2 gap-1 text-sm">
+            <span class="text-gray-500">Clock-In:</span>
+            <span>{{ formatTime(rec.clock_in_time) }}</span>
+            <span class="text-gray-500">Clock-Out:</span>
+            @if (rec.clock_out_time) {
+              <span>{{ formatTime(rec.clock_out_time) }}</span>
+            } @else {
+              <span class="italic text-gray-400">Belum</span>
+            }
+            @if (rec.work_hours != null) {
+              <span class="text-gray-500">Jam Kerja:</span>
+              <span class="font-semibold text-blue-600">{{ rec.work_hours | number:'1.1-1' }} jam</span>
+            }
+            <span class="text-gray-500">Jarak:</span>
+            <span>{{ rec.distance | number:'1.0-0' }} m</span>
+            <span class="text-gray-500">Status:</span>
+            @if (rec.is_late) {
+              <span class="text-red-600">Terlambat {{ rec.minutes_late }} mnt</span>
+            } @else {
+              <span class="text-green-600">Tepat waktu</span>
+            }
+          </div>
+          <button (click)="viewLocation(rec.latitude, rec.longitude)"
+            class="w-full text-sm bg-blue-50 text-blue-600 py-1.5 rounded hover:bg-blue-100 transition-colors">
+            Lihat Lokasi di Peta
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between rounded-lg border bg-white p-3 text-sm">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1"
+          class="px-3 py-1.5 rounded bg-blue-600 text-white disabled:opacity-40 hover:bg-blue-700 transition-colors">
+          Sebelumnya
+        </button>
+        <span class="text-gray-600">Halaman {{ currentPage() }} dari {{ totalPages() }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+          class="px-3 py-1.5 rounded bg-blue-600 text-white disabled:opacity-40 hover:bg-blue-700 transition-colors">
+          Selanjutnya
+        </button>
+      </div>
+    }
+  }
+</section>
