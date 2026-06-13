@@ -70,6 +70,10 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       GO_BACKEND_URL: http://attendance:8090
+      # Manager service account so the public RAG sync can pull instructors from
+      # the Go service. Leave unset to omit the instructor section.
+      RAG_SERVICE_USERNAME: ${RAG_SERVICE_USERNAME:-}
+      RAG_SERVICE_PASSWORD: ${RAG_SERVICE_PASSWORD:-}
     ports:
       - "8080:8080"
     depends_on:

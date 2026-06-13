@@ -115,8 +115,7 @@ Key design decisions:
 ├── CLAUDE.md                # contributor/agent guidance for this repo
 ├── docs/
 │   ├── prd.md               # product requirements (Epics 2–5)
-│   ├── wbs.md               # work breakdown structure
-│   └── superpowers/         # design specs & implementation plans
+│   └── wbs.md               # work breakdown structure
 │
 ├── frontend/                # Angular 18 SPA
 │   ├── src/app/
@@ -444,9 +443,6 @@ This repo is under active development; a few things are mid-migration and worth 
 - **Attendance/leave UI is partially wired.** Components exist under `frontend/src/app/dashboard/`
   (`absensi`, `cuti`, `riwayat-absensi`, `riwayat-cuti`, `kehadiran-tim`) and an `attendance.service`
   consumes the Go endpoints, but they are not yet added to `app.routes.ts`/the sidebar.
-- **`backend/README.md` is partly stale** — it predates the gateway/CRM/sessions work and still
-  documents the removed instructor endpoints and a "SQLAlchemy" note (the backend uses raw PyMySQL).
-  Treat this top-level README as the source of truth.
 - **Dev secrets are committed for convenience** (default `JWT_SECRET`, seeded passwords, open CORS
   `*` on FastAPI). Lock these down before any real deployment.
 
@@ -456,8 +452,6 @@ This repo is under active development; a few things are mid-migration and worth 
 
 - [`docs/prd.md`](docs/prd.md) — product requirements (vision, personas, Epics 2–5).
 - [`docs/wbs.md`](docs/wbs.md) — work breakdown structure.
-- [`docs/superpowers/`](docs/superpowers/) — design specs & implementation plans for the NYAMPE
-  attendance integration and the CRM/Sessions/AI/Auth work.
 - [`DOCKER.md`](DOCKER.md) — running the full stack with Docker.
 - [`CLAUDE.md`](CLAUDE.md) — contributor/agent guidance and architectural invariants.
 </content>
