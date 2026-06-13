@@ -4,6 +4,15 @@
 **Status:** Approved for planning
 **Scope chosen by user:** Everything except n8n automation.
 
+> **REVISION 2026-06-13 (post-NYAMPE merge):** While this was in planning, the
+> NYAMPE attendance integration merged into `main`. It already implements
+> authentication (a vendored Go service, proxied through the new
+> `app/routers/gateway.py`) and deleted `app/routers/instructors.py`. Therefore
+> **Part 3 below is superseded** — FastAPI no longer mints tokens or stores
+> users. Instead it *validates* the Go-issued JWT. See "Part 3 (REVISED)". The
+> frontend auth (AuthService, interceptor, login) is already done by that merge;
+> the only remaining frontend change is wiring session analysis (Part 2).
+
 ## Goal
 
 Close the three implementation gaps identified in the codebase:
@@ -196,7 +205,48 @@ Protected by `require_auth` (Part 3) — only logged-in admin/instructor users a
 
 ---
 
-## Part 3 — JWT authentication
+## Part 3 (REVISED) — Validate the NYAMPE Go-issued JWT
+
+The original Part 3 (below, struck) built auth inside FastAPI. The NYAMPE merge
+makes that obsolete: the Go service issues tokens and the frontend already logs
+in through the gateway. FastAPI's only job now is to **verify** that token on the
+new CRM/Sessions endpoints.
+
+**Go token facts** (from `attendance-backend/auth/jwt.go`, `handlers/auth.go`):
+- HS256, signed with `JWT_SECRET` (Go dev fallback `"super-secret-key-default"`).
+- Claims: `user_id` (int), `role` (string), `exp`. No username/name claim.
+- Roles: `employee | manager | instructor`; `manager` is the elevated role.
+
+**`backend/app/auth.py` (decode-only):**
+- `JWT_SECRET` from env, **must match the Go service's secret** (same dev default).
+- `decode_token(token)` → verifies HS256, returns `(user_id, role)`; raises 401 on
+  failure.
+- Dependencies via `HTTPBearer`: `require_auth` (any valid token) and
+  `require_manager` (role == `manager`, else 403).
+- **No** bcrypt, **no** token minting, **no** `users` table, **no** login router —
+  all owned by Go.
+
+**Protection matrix (revised):**
+
+| Endpoint                          | Protection        |
+|-----------------------------------|-------------------|
+| `GET /api/courses`, `GET /api/mechanisms`, `/rag/*`, `/health` | public |
+| `/api/auth/*`, `/api/attendance/*`, `/api/admin/*`, `/api/instructor/*` | gateway → Go |
+| `GET /api/crm/students` + writes  | `require_manager` |
+| `GET /api/sessions`, `POST /{id}/analyze` | `require_auth` (instructor or manager) |
+| `POST/PUT/DELETE /api/sessions`   | `require_manager` |
+
+**Deps/config (revised):** `requirements.txt` adds `PyJWT` (to *decode*) and
+`google-genai`; **drop `bcrypt`**. `.env.example` adds `JWT_SECRET` (matching Go),
+`GEMINI_API_KEY`, `GEMINI_MODEL`; **drop `JWT_EXPIRE_MINUTES`**.
+
+**Frontend:** no auth changes — `AuthService`, `authInterceptor`, and `LoginComponent`
+already exist from the NYAMPE merge and the interceptor attaches the token to the
+new endpoints automatically.
+
+---
+
+## ~~Part 3 (ORIGINAL — superseded by the revision above)~~ JWT authentication
 
 ### Database
 

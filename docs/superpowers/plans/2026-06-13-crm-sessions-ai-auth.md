@@ -1,72 +1,61 @@
-# CRM + Sessions Backend, Gemini 2.5 Analysis, JWT Auth — Implementation Plan
+# CRM + Sessions Backend, Gemini 2.5 Analysis, NYAMPE-JWT Validation — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add the missing CRM and Sessions REST API, real Gemini 2.5 session-note analysis, and real JWT authentication to the YPA Handayani app, preserving the existing camelCase wire contract and graceful-degradation behavior.
+> **REVISED 2026-06-13** after the NYAMPE attendance integration merged into `main`.
+> That merge already delivered authentication (Go service + gateway proxy) and the
+> frontend auth stack (AuthService, interceptor, login). So this plan **no longer
+> builds auth** — it only *validates* the Go-issued JWT on the new endpoints. Tasks
+> for a `users` table, bcrypt, token minting, a login router, and frontend auth
+> rewrites are removed. See `docs/superpowers/specs/2026-06-13-crm-sessions-ai-auth-design.md`
+> ("Part 3 (REVISED)").
 
-**Architecture:** Follow the existing epic-per-router FastAPI + raw-PyMySQL pattern. New tables (`users`, `students_crm`, `sessions`) with seed data mirroring `mock-data.ts`. A standalone `ai.py` module wraps Gemini 2.5 via the `google-genai` SDK with a deterministic stub fallback. JWT auth lives in `auth.py` (token + dependencies) and an `auth` router; protection is applied per the spec's matrix. Frontend `AuthService` becomes HTTP-backed with an interceptor, falling back to the in-memory mock only when the backend is unreachable.
+**Goal:** Add the missing CRM and Sessions REST API plus real Gemini 2.5 session-note analysis to the FastAPI backend, protected by validating the NYAMPE Go-issued JWT, preserving the existing camelCase wire contract and graceful-degradation behavior.
 
-**Tech Stack:** FastAPI 0.115, PyMySQL, PyJWT, bcrypt, google-genai (Gemini 2.5), Angular 18 standalone components, RxJS.
+**Architecture:** Follow the existing epic-per-router FastAPI + raw-PyMySQL pattern. New tables (`students_crm`, `sessions`) seeded to mirror `mock-data.ts`. A standalone `ai.py` wraps Gemini 2.5 (`google-genai`) with a deterministic stub fallback. `app/auth.py` is decode-only: it verifies the Go HS256 JWT (shared `JWT_SECRET`) and exposes `require_auth` / `require_manager` dependencies. The frontend already authenticates and attaches the token via its interceptor; the only frontend change is wiring session analysis to the new `/analyze` endpoint.
 
-**Reference spec:** `docs/superpowers/specs/2026-06-13-crm-sessions-ai-auth-design.md`
+**Tech Stack:** FastAPI 0.115, PyMySQL, PyJWT (decode only), google-genai (Gemini 2.5), Angular 18, RxJS.
 
-**No backend test suite exists** (per CLAUDE.md). Verification steps use Swagger/curl and `ng build`/`ng test`, matching the project's actual practice. Each task ends with a concrete verification command and a commit.
+**Key integration constraint:** FastAPI and the Go service **must share the same `JWT_SECRET`** (Go dev fallback: `super-secret-key-default`). Go roles are `employee | manager | instructor`; `manager` is the elevated/admin-equivalent role.
+
+**No backend test suite exists** (per CLAUDE.md). Verification uses Swagger/curl and `ng build`. Protected-endpoint checks use a locally-minted test token (same secret/claims as Go) so they don't require the Go service running.
 
 ---
 
 ## File Structure
 
 **Backend — create:**
-- `backend/app/auth.py` — password hashing, JWT issue/verify, FastAPI auth dependencies
+- `backend/app/auth.py` — decode-only Go-JWT validation + `require_auth`/`require_manager`
 - `backend/app/ai.py` — Gemini 2.5 analyzer + deterministic stub fallback
-- `backend/app/routers/auth.py` — `POST /api/auth/login`
-- `backend/app/routers/crm.py` — CRM students CRUD
+- `backend/app/routers/crm.py` — CRM students CRUD (manager-only)
 - `backend/app/routers/sessions.py` — sessions CRUD + `/analyze`
 
 **Backend — modify:**
-- `backend/schema.sql` — add `users`, `students_crm`, `sessions` tables
-- `backend/seed.sql` — seed the three new tables
-- `backend/app/models.py` — add `StudentCrm`, `AiAnalysis`, `Session`, `AnalyzeRequest`, `LoginRequest`, `AuthUser`, `LoginResponse`
-- `backend/app/main.py` — register the three new routers
-- `backend/app/routers/courses.py` — protect writes with `require_admin`
-- `backend/app/routers/instructors.py` — protect writes + admin schedule read
-- `backend/app/routers/mechanisms.py` — protect writes with `require_admin`
-- `backend/requirements.txt` — add `PyJWT`, `bcrypt`, `google-genai`
-- `backend/.env.example` — add JWT + Gemini vars
-
-**Frontend — create:**
-- `frontend/src/app/core/interceptors/auth.interceptor.ts` — attach Bearer token
+- `backend/schema.sql` — add `students_crm`, `sessions` tables
+- `backend/seed.sql` — seed the two new tables
+- `backend/app/models.py` — add `StudentCrm`, `AiAnalysis`, `Session`, `AnalyzeRequest`
+- `backend/app/main.py` — register `crm` and `sessions` routers
+- `backend/requirements.txt` — add `PyJWT`, `google-genai`
+- `backend/.env.example` — add `JWT_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`
 
 **Frontend — modify:**
-- `frontend/src/app/core/services/auth.service.ts` — HTTP login + token + fallback
-- `frontend/src/app/core/services/api.service.ts` — `analyzeSession()`
-- `frontend/src/app/auth/login/login.component.ts` — subscribe to async login
-- `frontend/src/app/dashboard/sesi/sesi.component.ts` — call real analyze endpoint
-- `frontend/src/app/app.config.ts` — register the interceptor
+- `frontend/src/app/core/services/api.service.ts` — add `analyzeSession()`
+- `frontend/src/app/dashboard/sesi/sesi.component.ts` — call the real `/analyze` endpoint
 
 ---
 
-## Phase A — Database & Models
+## Phase A — Database, Deps & Models
 
-### Task 1: Add new tables to schema
+### Task 1: Add CRM + Sessions tables
 
 **Files:**
 - Modify: `backend/schema.sql` (append after the `mechanisms` table)
 
-- [ ] **Step 1: Append the three new tables**
+- [ ] **Step 1: Append the two tables**
 
 Add to the end of `backend/schema.sql`:
 
 ```sql
--- ── Authentication (JWT) ────────────────────────────────────
-CREATE TABLE IF NOT EXISTS users (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
-  username      VARCHAR(64)  NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  name          VARCHAR(128) NOT NULL,
-  role          VARCHAR(16)  NOT NULL DEFAULT 'instructor'
-) ENGINE=InnoDB;
-
 -- ── CRM (admin tooling) ─────────────────────────────────────
 CREATE TABLE IF NOT EXISTS students_crm (
   id             INT AUTO_INCREMENT PRIMARY KEY,
@@ -102,26 +91,27 @@ CREATE TABLE IF NOT EXISTS sessions (
 ) ENGINE=InnoDB;
 ```
 
-- [ ] **Step 2: Verify the schema applies cleanly**
+- [ ] **Step 2: Verify schema applies**
 
 Run: `mysql -u root -p < backend/schema.sql`
-Expected: no errors. Then `mysql -u root -p handayani -e "SHOW TABLES;"` lists `users`, `students_crm`, `sessions` alongside the existing tables.
+Then: `mysql -u root -p handayani -e "SHOW TABLES;"`
+Expected: no errors; `students_crm` and `sessions` listed.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add backend/schema.sql
-git commit -m "feat(db): add users, students_crm, sessions tables"
+git commit -m "feat(db): add students_crm and sessions tables"
 ```
 
 ---
 
-### Task 2: Seed the new tables
+### Task 2: Seed CRM + Sessions
 
 **Files:**
 - Modify: `backend/seed.sql` (append)
 
-- [ ] **Step 1: Append CRM and session seed rows**
+- [ ] **Step 1: Append seed rows**
 
 Add to the end of `backend/seed.sql`:
 
@@ -156,40 +146,22 @@ INSERT INTO sessions
  'Siswa menunjukkan kesulitan signifikan pada sesi ke-4. Direkomendasikan penambahan 2 sesi khusus tanjakan.');
 ```
 
-- [ ] **Step 2: Generate bcrypt hashes and append the users seed**
-
-The `users` rows need real bcrypt hashes (no plaintext at rest). Generate them after deps are installed (Task 3 installs `bcrypt`). Run from `backend/` with the venv active:
-
-```bash
-python -c "import bcrypt; print(bcrypt.hashpw(b'admin123', bcrypt.gensalt()).decode()); print(bcrypt.hashpw(b'instruktur123', bcrypt.gensalt()).decode())"
-```
-
-Paste the two printed hashes into a new block appended to `backend/seed.sql`, replacing `<HASH_ADMIN>` / `<HASH_INSTRUKTUR>` with the exact output lines:
-
-```sql
-INSERT INTO users (id, username, password_hash, name, role) VALUES
-(1, 'admin', '<HASH_ADMIN>', 'Administrator', 'admin'),
-(2, 'instruktur', '<HASH_INSTRUKTUR>', 'Pak Bambang', 'instructor');
-```
-
-> Note: bcrypt embeds its salt, so any correctly generated hash verifies. These are static by design (documented in the spec).
-
-- [ ] **Step 3: Verify seed applies**
+- [ ] **Step 2: Verify seed applies**
 
 Run: `mysql -u root -p < backend/seed.sql`
-Then: `mysql -u root -p handayani -e "SELECT username, role FROM users; SELECT COUNT(*) FROM students_crm; SELECT COUNT(*) FROM sessions;"`
-Expected: 2 users, 6 CRM students, 3 sessions.
+Then: `mysql -u root -p handayani -e "SELECT COUNT(*) FROM students_crm; SELECT COUNT(*) FROM sessions;"`
+Expected: 6 students, 3 sessions.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add backend/seed.sql
-git commit -m "feat(db): seed users, students_crm, sessions"
+git commit -m "feat(db): seed students_crm and sessions"
 ```
 
 ---
 
-### Task 3: Add Python dependencies and env config
+### Task 3: Dependencies and env config
 
 **Files:**
 - Modify: `backend/requirements.txt`
@@ -205,7 +177,6 @@ uvicorn==0.34.0
 PyMySQL==1.1.1
 python-dotenv==1.0.1
 PyJWT==2.10.1
-bcrypt==4.2.1
 google-genai==1.2.0
 ```
 
@@ -222,12 +193,12 @@ DB_USER=root
 DB_PASSWORD=
 DB_NAME=handayani
 
-# Auth — change JWT_SECRET in any real deployment.
-JWT_SECRET=change-me-in-production
-JWT_EXPIRE_MINUTES=720
+# MUST match the NYAMPE Go service's JWT_SECRET so FastAPI can validate its
+# tokens. The Go dev fallback is "super-secret-key-default".
+JWT_SECRET=super-secret-key-default
 
-# Gemini 2.5 session analysis. Leave GEMINI_API_KEY blank to use the
-# built-in deterministic stub (no external calls).
+# Gemini 2.5 session analysis. Leave GEMINI_API_KEY blank to use the built-in
+# deterministic stub (no external calls).
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
 ```
@@ -235,18 +206,18 @@ GEMINI_MODEL=gemini-2.5-flash
 - [ ] **Step 3: Install**
 
 Run from `backend/` (venv active): `pip install -r requirements.txt`
-Expected: installs PyJWT, bcrypt, google-genai and their deps with no errors.
+Expected: installs PyJWT and google-genai with no errors.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add backend/requirements.txt backend/.env.example
-git commit -m "build(backend): add PyJWT, bcrypt, google-genai deps and env config"
+git commit -m "build(backend): add PyJWT + google-genai; shared JWT_SECRET config"
 ```
 
 ---
 
-### Task 4: Add Pydantic models
+### Task 4: Pydantic models
 
 **Files:**
 - Modify: `backend/app/models.py` (append after `Mechanism`)
@@ -295,43 +266,25 @@ class Session(BaseModel):
 
 class AnalyzeRequest(BaseModel):
     rawNotes: str
-
-
-# ── Auth ────────────────────────────────────────────────────
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-
-class AuthUser(BaseModel):
-    id: int
-    username: str
-    name: str
-    role: str
-
-
-class LoginResponse(BaseModel):
-    token: str
-    user: AuthUser
 ```
 
 - [ ] **Step 2: Verify it imports**
 
-Run from `backend/`: `python -c "from app import models; print(models.Session.__fields__.keys())"`
-Expected: prints the Session field names including `aiAnalysis`. No import error.
+Run from `backend/`: `python -c "from app import models; print(list(models.Session.model_fields))"`
+Expected: prints Session field names including `aiAnalysis`. No import error.
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add backend/app/models.py
-git commit -m "feat(models): add StudentCrm, Session, AiAnalysis, auth models"
+git commit -m "feat(models): add StudentCrm, Session, AiAnalysis, AnalyzeRequest"
 ```
 
 ---
 
-## Phase B — Authentication
+## Phase B — Go-JWT validation
 
-### Task 5: Auth core module
+### Task 5: Decode-only auth module
 
 **Files:**
 - Create: `backend/app/auth.py`
@@ -341,238 +294,84 @@ git commit -m "feat(models): add StudentCrm, Session, AiAnalysis, auth models"
 Create `backend/app/auth.py`:
 
 ```python
-"""Authentication: bcrypt password hashing, JWT issue/verify, and FastAPI
-dependencies that guard protected endpoints.
+"""Validates the JWT issued by the NYAMPE Go service.
 
-JWT_SECRET and expiry come from the environment. Tokens are HS256-signed and
-carry the user id, username, name, and role so the dependencies can authorize
-without a second DB round-trip.
+FastAPI does NOT mint tokens or store users — the Go service (proxied via
+routers/gateway.py) owns authentication. This module only *verifies* the
+incoming Bearer token: HS256, signed with the shared JWT_SECRET. The Go token
+carries `user_id` and `role` claims (roles: employee | manager | instructor).
+`manager` is the elevated/admin-equivalent role.
 """
 import os
-from datetime import datetime, timedelta, timezone
 
-import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
-from .models import AuthUser
+from pydantic import BaseModel
 
 _ALGORITHM = "HS256"
+# Matches the Go service's dev fallback so local dev "just works" with no .env.
+_DEFAULT_SECRET = "super-secret-key-default"
 _bearer = HTTPBearer(auto_error=False)
 
 
+class TokenUser(BaseModel):
+    userId: int
+    role: str
+
+
 def _secret() -> str:
-    return os.getenv("JWT_SECRET", "change-me-in-production")
+    return os.getenv("JWT_SECRET", _DEFAULT_SECRET)
 
 
-def _expire_minutes() -> int:
-    return int(os.getenv("JWT_EXPIRE_MINUTES", "720"))
-
-
-def hash_password(plain: str) -> str:
-    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
-
-
-def verify_password(plain: str, hashed: str) -> bool:
-    try:
-        return bcrypt.checkpw(plain.encode(), hashed.encode())
-    except (ValueError, TypeError):
-        return False
-
-
-def create_token(user: AuthUser) -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": str(user.id),
-        "username": user.username,
-        "name": user.name,
-        "role": user.role,
-        "iat": now,
-        "exp": now + timedelta(minutes=_expire_minutes()),
-    }
-    return jwt.encode(payload, _secret(), algorithm=_ALGORITHM)
-
-
-def _decode(token: str) -> AuthUser:
+def decode_token(token: str) -> TokenUser:
     try:
         payload = jwt.decode(token, _secret(), algorithms=[_ALGORITHM])
     except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    return AuthUser(
-        id=int(payload["sub"]),
-        username=payload["username"],
-        name=payload["name"],
-        role=payload["role"],
-    )
+    return TokenUser(userId=int(payload.get("user_id", 0)), role=payload.get("role", ""))
 
 
-def require_auth(
-    creds: HTTPAuthorizationCredentials = Depends(_bearer),
-) -> AuthUser:
-    """Any authenticated user (admin or instructor)."""
+def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> TokenUser:
+    """Any authenticated NYAMPE user."""
     if creds is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
-    return _decode(creds.credentials)
+    return decode_token(creds.credentials)
 
 
-def require_admin(user: AuthUser = Depends(require_auth)) -> AuthUser:
-    """Admin-only endpoints."""
-    if user.role != "admin":
+def require_manager(user: TokenUser = Depends(require_auth)) -> TokenUser:
+    """Manager-only endpoints (the admin-equivalent role)."""
+    if user.role != "manager":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Manager role required"
         )
     return user
 ```
 
-- [ ] **Step 2: Verify round-trip**
+- [ ] **Step 2: Verify validation against a Go-shaped token**
 
-Run from `backend/`:
+Run from `backend/` (mints a token exactly like the Go service, then decodes it):
 ```bash
-python -c "from app.auth import hash_password, verify_password, create_token, _decode; from app.models import AuthUser; h=hash_password('x'); print(verify_password('x',h), verify_password('y',h)); u=AuthUser(id=1,username='a',name='A',role='admin'); t=create_token(u); print(_decode(t).role)"
+python -c "import jwt, time; from app.auth import decode_token; t=jwt.encode({'user_id':5,'role':'manager','exp':int(time.time())+3600},'super-secret-key-default',algorithm='HS256'); u=decode_token(t); print(u.userId, u.role)"
 ```
-Expected: `True False` then `admin`.
+Expected: `5 manager`. A token signed with a different secret raises a 401 (HTTPException).
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add backend/app/auth.py
-git commit -m "feat(auth): bcrypt hashing, JWT tokens, auth dependencies"
+git commit -m "feat(auth): validate NYAMPE Go-issued JWT (decode-only deps)"
 ```
 
 ---
 
-### Task 6: Auth router (login)
+## Phase C — CRM, AI, Sessions
 
-**Files:**
-- Create: `backend/app/routers/auth.py`
-- Modify: `backend/app/main.py`
-
-- [ ] **Step 1: Write the login router**
-
-Create `backend/app/routers/auth.py`:
-
-```python
-"""Authentication endpoints. POST /api/auth/login verifies credentials against
-the users table and returns a JWT plus the user profile (same shape as the
-Angular AuthUser)."""
-from fastapi import APIRouter, Depends, HTTPException, status
-from pymysql.connections import Connection
-
-from ..auth import create_token, verify_password
-from ..database import get_db
-from ..models import AuthUser, LoginRequest, LoginResponse
-
-router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-
-@router.post("/login", response_model=LoginResponse)
-def login(body: LoginRequest, db: Connection = Depends(get_db)):
-    with db.cursor() as cur:
-        cur.execute(
-            "SELECT id, username, password_hash, name, role FROM users WHERE username=%s",
-            (body.username,),
-        )
-        row = cur.fetchone()
-    if row is None or not verify_password(body.password, row["password_hash"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Username atau password salah",
-        )
-    user = AuthUser(id=row["id"], username=row["username"], name=row["name"], role=row["role"])
-    return LoginResponse(token=create_token(user), user=user)
-```
-
-- [ ] **Step 2: Register the router in main.py**
-
-In `backend/app/main.py`, update the import line and add the include. Change:
-
-```python
-from .routers import courses, instructors, mechanisms, rag
-```
-to:
-```python
-from .routers import auth, courses, crm, instructors, mechanisms, rag, sessions
-```
-
-And add after `app.include_router(rag.router)`:
-
-```python
-app.include_router(auth.router)
-app.include_router(crm.router)
-app.include_router(sessions.router)
-```
-
-> Note: `crm` and `sessions` modules are created in Tasks 8 and 10. If running the server before those exist, this import will fail — implement Tasks 8 and 10 before starting uvicorn. (Subagent-driven execution does these in order.)
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add backend/app/routers/auth.py backend/app/main.py
-git commit -m "feat(auth): add POST /api/auth/login and register new routers"
-```
-
----
-
-### Task 7: Protect existing write endpoints
-
-**Files:**
-- Modify: `backend/app/routers/courses.py`
-- Modify: `backend/app/routers/instructors.py`
-- Modify: `backend/app/routers/mechanisms.py`
-
-- [ ] **Step 1: Protect courses writes**
-
-In `backend/app/routers/courses.py`, add to the imports:
-
-```python
-from ..auth import require_admin
-```
-
-Add `_: object = Depends(require_admin)` as the final parameter of `create_course`, `update_course`, and `delete_course`. Example for `create_course`:
-
-```python
-@router.post("", response_model=Course, status_code=status.HTTP_201_CREATED)
-def create_course(course: Course, db: Connection = Depends(get_db), _: object = Depends(require_admin)):
-```
-
-Apply the same `_: object = Depends(require_admin)` final parameter to `update_course` and `delete_course`. Leave `list_courses` (GET) public.
-
-- [ ] **Step 2: Protect mechanisms writes**
-
-In `backend/app/routers/mechanisms.py`, add `from ..auth import require_admin` and add `_: object = Depends(require_admin)` as the final parameter of the create, update, and delete handlers. Leave the GET handler public.
-
-- [ ] **Step 3: Protect instructors writes + admin schedule read**
-
-In `backend/app/routers/instructors.py`, add `from ..auth import require_admin, require_auth`. Then:
-- `list_instructors_with_schedule` (the admin `GET /schedule`): add `_: object = Depends(require_auth)` final parameter.
-- `create_instructor`, `update_instructor`, `delete_instructor`, `update_schedule`: add `_: object = Depends(require_admin)` final parameter.
-- Leave `list_instructors_with_public_schedule` (`/schedule/public`) public.
-
-- [ ] **Step 4: Verify protection**
-
-Start MySQL and the server: `uvicorn app.main:app --port 8080` (from `backend/`, after Tasks 8 & 10 exist). Then:
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8080/api/courses -H "Content-Type: application/json" -d "{}"
-```
-Expected: `401` (or `403`). And `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/api/courses` → `200` (public read still works).
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add backend/app/routers/courses.py backend/app/routers/instructors.py backend/app/routers/mechanisms.py
-git commit -m "feat(auth): require admin/auth on write and admin-read endpoints"
-```
-
----
-
-## Phase C — CRM & Sessions API + AI
-
-### Task 8: CRM router
+### Task 6: CRM router
 
 **Files:**
 - Create: `backend/app/routers/crm.py`
@@ -582,11 +381,11 @@ git commit -m "feat(auth): require admin/auth on write and admin-read endpoints"
 Create `backend/app/routers/crm.py`:
 
 ```python
-"""CRM students CRUD (admin tooling). Admin-only per the auth matrix."""
+"""CRM students CRUD (admin tooling). Manager-only per the auth matrix."""
 from fastapi import APIRouter, Depends, status
 from pymysql.connections import Connection
 
-from ..auth import require_admin
+from ..auth import require_manager
 from ..database import get_db
 from ..models import StudentCrm
 
@@ -601,14 +400,14 @@ _SELECT = (
 
 
 @router.get("", response_model=list[StudentCrm])
-def list_students(db: Connection = Depends(get_db), _: object = Depends(require_admin)):
+def list_students(db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     with db.cursor() as cur:
         cur.execute(_SELECT)
         return [StudentCrm(**row) for row in cur.fetchall()]
 
 
 @router.post("", response_model=StudentCrm, status_code=status.HTTP_201_CREATED)
-def create_student(student: StudentCrm, db: Connection = Depends(get_db), _: object = Depends(require_admin)):
+def create_student(student: StudentCrm, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     with db.cursor() as cur:
         cur.execute(
             "INSERT INTO students_crm "
@@ -622,7 +421,7 @@ def create_student(student: StudentCrm, db: Connection = Depends(get_db), _: obj
 
 
 @router.put("/{student_id}", response_model=StudentCrm)
-def update_student(student_id: int, student: StudentCrm, db: Connection = Depends(get_db), _: object = Depends(require_admin)):
+def update_student(student_id: int, student: StudentCrm, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     student.id = student_id
     with db.cursor() as cur:
         cur.execute(
@@ -635,27 +434,23 @@ def update_student(student_id: int, student: StudentCrm, db: Connection = Depend
 
 
 @router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_student(student_id: int, db: Connection = Depends(get_db), _: object = Depends(require_admin)):
+def delete_student(student_id: int, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     with db.cursor() as cur:
         cur.execute("DELETE FROM students_crm WHERE id=%(id)s", {"id": student_id})
 ```
 
 > Note the `%%Y-%%m-%%d` double-percent: PyMySQL treats `%` as a parameter marker, so literal percents in SQL must be escaped.
 
-- [ ] **Step 2: Verify (after server runs in Task 11)**
-
-`curl` with a token (see Task 11 verification) `GET http://localhost:8080/api/crm/students` returns 6 students with `courseId`/`createdAt` camelCase fields.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add backend/app/routers/crm.py
-git commit -m "feat(crm): add /api/crm/students CRUD (admin-only)"
+git commit -m "feat(crm): add /api/crm/students CRUD (manager-only)"
 ```
 
 ---
 
-### Task 9: Gemini 2.5 analyzer module
+### Task 7: Gemini 2.5 analyzer module
 
 **Files:**
 - Create: `backend/app/ai.py`
@@ -765,7 +560,7 @@ git commit -m "feat(ai): Gemini 2.5 session analyzer with deterministic stub fal
 
 ---
 
-### Task 10: Sessions router (CRUD + analyze)
+### Task 8: Sessions router (CRUD + analyze)
 
 **Files:**
 - Create: `backend/app/routers/sessions.py`
@@ -775,18 +570,19 @@ git commit -m "feat(ai): Gemini 2.5 session analyzer with deterministic stub fal
 Create `backend/app/routers/sessions.py`:
 
 ```python
-"""Training sessions CRUD + AI analysis (admin tooling). Requires auth.
+"""Training sessions CRUD + AI analysis (admin tooling).
 
-The four ai_* columns map to a nested AiAnalysis object on the wire: they are
-returned as `aiAnalysis` (or null when empty) to match the Angular Session
-interface. JSON columns deserialize to Python lists via PyMySQL."""
+Reads/analyze require any authenticated user; writes require manager. The four
+ai_* columns map to a nested AiAnalysis object on the wire (`aiAnalysis`, or
+null when empty) to match the Angular Session interface. JSON columns
+deserialize to Python lists via PyMySQL."""
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymysql.connections import Connection
 
 from ..ai import analyze_session_notes
-from ..auth import require_auth
+from ..auth import require_auth, require_manager
 from ..database import get_db
 from ..models import AiAnalysis, AnalyzeRequest, Session
 
@@ -854,7 +650,7 @@ def list_sessions(db: Connection = Depends(get_db), _: object = Depends(require_
 
 
 @router.post("", response_model=Session, status_code=status.HTTP_201_CREATED)
-def create_session(session: Session, db: Connection = Depends(get_db), _: object = Depends(require_auth)):
+def create_session(session: Session, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     with db.cursor() as cur:
         cur.execute(
             "INSERT INTO sessions "
@@ -870,7 +666,7 @@ def create_session(session: Session, db: Connection = Depends(get_db), _: object
 
 
 @router.put("/{session_id}", response_model=Session)
-def update_session(session_id: int, session: Session, db: Connection = Depends(get_db), _: object = Depends(require_auth)):
+def update_session(session_id: int, session: Session, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     session.id = session_id
     with db.cursor() as cur:
         cur.execute(
@@ -885,7 +681,7 @@ def update_session(session_id: int, session: Session, db: Connection = Depends(g
 
 
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_session(session_id: int, db: Connection = Depends(get_db), _: object = Depends(require_auth)):
+def delete_session(session_id: int, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
     with db.cursor() as cur:
         cur.execute("DELETE FROM sessions WHERE id=%(id)s", {"id": session_id})
 
@@ -927,7 +723,45 @@ git commit -m "feat(sessions): CRUD + POST /analyze with Gemini analysis"
 
 ---
 
-### Task 11: End-to-end backend verification
+### Task 9: Register the new routers
+
+**Files:**
+- Modify: `backend/app/main.py`
+
+- [ ] **Step 1: Update imports and includes**
+
+In `backend/app/main.py`, change:
+
+```python
+from .routers import courses, mechanisms, rag, gateway
+```
+to:
+```python
+from .routers import courses, crm, mechanisms, rag, sessions, gateway
+```
+
+And after `app.include_router(gateway.router)` (or alongside the other includes), add:
+
+```python
+app.include_router(crm.router)
+app.include_router(sessions.router)
+```
+
+- [ ] **Step 2: Verify the app imports**
+
+Run from `backend/`: `python -c "from app.main import app; print([r.path for r in app.routes if 'crm' in r.path or 'sessions' in r.path])"`
+Expected: lists `/api/crm/students` and `/api/sessions` (+ `/api/sessions/{session_id}` and `/analyze`). No import error.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add backend/app/main.py
+git commit -m "feat(api): register crm and sessions routers"
+```
+
+---
+
+### Task 10: Backend endpoint verification
 
 **Files:** none (verification only)
 
@@ -935,268 +769,43 @@ git commit -m "feat(sessions): CRUD + POST /analyze with Gemini analysis"
 
 From `backend/` with MySQL running and schema+seed applied:
 `uvicorn app.main:app --reload --port 8080`
-Expected: starts with no import errors; `/docs` lists auth, crm, sessions routes.
+Expected: starts with no import errors; `/docs` lists `crm` and `sessions` routes.
 
-- [ ] **Step 2: Log in and capture a token**
+- [ ] **Step 2: Mint a test token (same secret/claims as Go)**
 
 ```bash
-curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
+python -c "import jwt, time; print(jwt.encode({'user_id':1,'role':'manager','exp':int(time.time())+3600},'super-secret-key-default',algorithm='HS256'))"
 ```
-Expected: JSON with `token` and `user.role == "admin"`. Bad password → `401`.
+Copy the printed token.
 
-- [ ] **Step 3: Hit protected endpoints with the token**
+- [ ] **Step 3: Hit protected endpoints**
 
 ```bash
-TOKEN=... # paste token value
-curl -s http://localhost:8080/api/crm/students -H "Authorization: Bearer $TOKEN" | head
-curl -s http://localhost:8080/api/sessions -H "Authorization: Bearer $TOKEN" | head
+TOKEN=...   # paste the token
+curl -s -o /dev/null -w "no-token: %{http_code}\n" http://localhost:8080/api/crm/students
+curl -s -w "\n" http://localhost:8080/api/crm/students -H "Authorization: Bearer $TOKEN" | head
+curl -s -w "\n" http://localhost:8080/api/sessions -H "Authorization: Bearer $TOKEN" | head
 ```
-Expected: 6 students; 3 sessions, session id 2 carrying a nested `aiAnalysis`, session id 1 with `aiAnalysis: null`. Without the header → `401`.
+Expected: `no-token: 401`; with the manager token, 6 CRM students and 3 sessions (session id 2 has nested `aiAnalysis`, id 1 has `aiAnalysis: null`).
 
-- [ ] **Step 4: Analyze a session (stub path, no Gemini key)**
+- [ ] **Step 4: Analyze a session (stub path)**
 
 ```bash
-curl -s -X POST http://localhost:8080/api/sessions/1/analyze -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"rawNotes\":\"Siswa latihan parkir.\"}"
+curl -s -X POST http://localhost:8080/api/sessions/1/analyze -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"rawNotes\":\"Siswa latihan parkir.\"}" | head
 ```
-Expected: returns session 1 with `status: "completed"` and a populated `aiAnalysis` (upsell present since 7/10 ≥ 8? no — 7 < 8, so upsell null). Re-query confirms persistence.
+Expected: returns session 1 with `status: "completed"` and a populated `aiAnalysis`. Re-querying `/api/sessions` confirms it persisted.
 
-- [ ] **Step 5: Commit (if any fixes were needed)**
+- [ ] **Step 5: Commit any fixes**
 
 ```bash
-git commit -am "fix(backend): address issues found in e2e verification" --allow-empty
+git commit -am "fix(backend): address issues found in endpoint verification" --allow-empty
 ```
 
 ---
 
-## Phase D — Frontend
+## Phase D — Frontend wiring
 
-### Task 12: HTTP-backed AuthService with offline fallback
-
-**Files:**
-- Modify: `frontend/src/app/core/services/auth.service.ts`
-
-- [ ] **Step 1: Rewrite the service**
-
-Replace `frontend/src/app/core/services/auth.service.ts` with:
-
-```typescript
-import { Injectable, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-
-export type UserRole = 'admin' | 'instructor';
-
-export interface AuthUser {
-  id: number;
-  username: string;
-  name: string;
-  role: UserRole;
-}
-
-interface LoginResponse {
-  token: string;
-  user: AuthUser;
-}
-
-interface MockCredential {
-  username: string;
-  password: string;
-  user: AuthUser;
-}
-
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-  private readonly STORAGE_KEY = 'handayani_auth_user';
-  private readonly TOKEN_KEY = 'handayani_auth_token';
-  public currentUser = signal<AuthUser | null>(null);
-
-  private readonly MOCK_USERS: MockCredential[] = [
-    { username: 'admin', password: 'admin123', user: { id: 1, username: 'admin', name: 'Administrator', role: 'admin' } },
-    { username: 'instruktur', password: 'instruktur123', user: { id: 2, username: 'instruktur', name: 'Pak Bambang', role: 'instructor' } }
-  ];
-
-  constructor(private http: HttpClient, private router: Router) {
-    this.restoreSession();
-  }
-
-  private restoreSession(): void {
-    const stored = localStorage.getItem(this.STORAGE_KEY);
-    if (stored) {
-      try {
-        this.currentUser.set(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(this.STORAGE_KEY);
-      }
-    }
-  }
-
-  /**
-   * Logs in against POST /api/auth/login. A real 401 from a reachable backend
-   * is authoritative (emits false). Only a connection failure (status 0) falls
-   * back to the in-memory mock credentials so offline demos still work.
-   */
-  login(username: string, password: string): Observable<boolean> {
-    return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/api/auth/login`, { username, password }).pipe(
-      map(res => {
-        this.persist(res.user, res.token);
-        return true;
-      }),
-      catchError((err: HttpErrorResponse) => {
-        if (err.status === 0) {
-          return of(this.mockLogin(username, password));
-        }
-        return of(false);
-      })
-    );
-  }
-
-  private mockLogin(username: string, password: string): boolean {
-    const match = this.MOCK_USERS.find(u => u.username === username && u.password === password);
-    if (match) {
-      this.persist(match.user, 'mock-offline-token');
-      return true;
-    }
-    return false;
-  }
-
-  private persist(user: AuthUser, token: string): void {
-    this.currentUser.set(user);
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  logout(): void {
-    this.currentUser.set(null);
-    localStorage.removeItem(this.STORAGE_KEY);
-    localStorage.removeItem(this.TOKEN_KEY);
-    this.router.navigate(['/login']);
-  }
-
-  isAuthenticated(): boolean {
-    return this.currentUser() !== null;
-  }
-
-  isAdmin(): boolean {
-    return this.currentUser()?.role === 'admin';
-  }
-}
-```
-
-- [ ] **Step 2: Verify build**
-
-Run from `frontend/`: `ng build`
-Expected: compiles. (Login component still references `login()` synchronously — fixed in Task 14; if `ng build` fails only on that, proceed to Task 14 then re-check.)
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add frontend/src/app/core/services/auth.service.ts
-git commit -m "feat(auth-fe): HTTP login + JWT storage, offline mock fallback"
-```
-
----
-
-### Task 13: Auth HTTP interceptor
-
-**Files:**
-- Create: `frontend/src/app/core/interceptors/auth.interceptor.ts`
-- Modify: `frontend/src/app/app.config.ts`
-
-- [ ] **Step 1: Write the interceptor**
-
-Create `frontend/src/app/core/interceptors/auth.interceptor.ts`:
-
-```typescript
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
-
-/** Attaches the JWT as a Bearer token to outgoing requests when present. */
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = inject(AuthService).getToken();
-  if (token && token !== 'mock-offline-token') {
-    req = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
-  }
-  return next(req);
-};
-```
-
-- [ ] **Step 2: Register it in app.config.ts**
-
-In `frontend/src/app/app.config.ts`, find the `provideHttpClient(...)` call and add the interceptor. Update the import to include `withInterceptors` from `@angular/common/http`, import `authInterceptor`, and change the provider to:
-
-```typescript
-provideHttpClient(withInterceptors([authInterceptor]))
-```
-
-> If `provideHttpClient` currently passes other args (e.g. `withFetch()`), keep them: `provideHttpClient(withFetch(), withInterceptors([authInterceptor]))`.
-
-- [ ] **Step 3: Verify build**
-
-Run from `frontend/`: `ng build`
-Expected: compiles with the interceptor registered.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add frontend/src/app/core/interceptors/auth.interceptor.ts frontend/src/app/app.config.ts
-git commit -m "feat(auth-fe): attach Bearer token via HTTP interceptor"
-```
-
----
-
-### Task 14: Update LoginComponent for async login
-
-**Files:**
-- Modify: `frontend/src/app/auth/login/login.component.ts`
-
-- [ ] **Step 1: Replace onLogin to subscribe**
-
-In `frontend/src/app/auth/login/login.component.ts`, replace the `onLogin()` method body (the version using `setTimeout`) with:
-
-```typescript
-  onLogin(): void {
-    if (!this.username || !this.password) {
-      this.errorMessage.set('Username dan password tidak boleh kosong.');
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.errorMessage.set('');
-
-    this.authService.login(this.username, this.password).subscribe(success => {
-      this.isLoading.set(false);
-      if (success) {
-        this.router.navigate(['/dashboard']);
-      } else {
-        this.errorMessage.set('Username atau password salah. Silakan coba lagi.');
-      }
-    });
-  }
-```
-
-- [ ] **Step 2: Verify build**
-
-Run from `frontend/`: `ng build`
-Expected: compiles cleanly now that `login()` returns an Observable.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add frontend/src/app/auth/login/login.component.ts
-git commit -m "feat(auth-fe): subscribe to async login observable"
-```
-
----
-
-### Task 15: Wire session analysis to the real endpoint
+### Task 11: Wire session analysis to the real endpoint
 
 **Files:**
 - Modify: `frontend/src/app/core/services/api.service.ts`
@@ -1235,6 +844,8 @@ In `frontend/src/app/core/services/api.service.ts`, inside the "CRM & SESSIONS" 
   }
 ```
 
+> `Observable`, `of`, `catchError`, and `Session` are already imported in this file (used by the existing read methods) — no new imports needed.
+
 - [ ] **Step 2: Update SesiComponent.submitNotes**
 
 In `frontend/src/app/dashboard/sesi/sesi.component.ts`, replace the `submitNotes()` method (the `setTimeout` mock version) with:
@@ -1268,43 +879,39 @@ git commit -m "feat(sessions-fe): call real /analyze endpoint with mock fallback
 
 ---
 
-### Task 16: Full-stack smoke verification
+### Task 12: Full-stack smoke verification
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run both servers**
+- [ ] **Step 1: Run servers**
 
-Backend: `uvicorn app.main:app --port 8080` (from `backend/`, MySQL up, seed applied).
-Frontend: `npm start` (from `frontend/`).
+Backend: `uvicorn app.main:app --port 8080` (MySQL up, seed applied). Frontend: `npm start`.
+For real login, the NYAMPE Go service must be running on `GO_BACKEND_URL` (default `http://localhost:8090`) with the **same `JWT_SECRET`**.
 
-- [ ] **Step 2: Verify real login + data**
+- [ ] **Step 2: Verify analysis flow (manager login)**
 
-In the browser at `http://localhost:4200/login`, log in as `admin`/`admin123`.
-Expected: redirected to dashboard; Overview stats and CRM screen show the seeded students; Sesi screen shows 3 sessions. Check the Network tab: `/api/auth/login` returned a token, subsequent `/api/crm/students` and `/api/sessions` carried the `Authorization: Bearer` header.
+Log in (via NYAMPE) as a manager, open the Sesi screen, open a `scheduled` session, enter notes, submit.
+Expected: spinner, then the session flips to `completed` with a populated analysis (backend stub, or real Gemini if a key is set in `backend/.env`). Network tab shows `POST /api/sessions/{id}/analyze` carried the `Authorization: Bearer` header (added by the existing interceptor) and returned 200.
 
-- [ ] **Step 3: Verify AI analysis flow**
+- [ ] **Step 3: Verify offline fallback**
 
-Open a `scheduled` session, enter notes, submit.
-Expected: spinner shows, then the session flips to `completed` with a populated analysis (from the backend stub, or real Gemini if a key is configured in `backend/.env`).
+Stop the FastAPI backend; submit notes again.
+Expected: `analyzeSession` falls back to the local mock analysis; the UI still completes the session.
 
-- [ ] **Step 4: Verify offline fallback**
-
-Stop the backend. Reload `/login`, log in as `admin`/`admin123`.
-Expected: login still succeeds (mock fallback, status 0), dashboard shows mock data, analyzing notes still returns a mock analysis. Logging in with a wrong password while the backend is **up** must fail (no fallback).
-
-- [ ] **Step 5: Final commit**
+- [ ] **Step 4: Final commit**
 
 ```bash
-git commit -am "test: full-stack smoke verification of auth, CRM, sessions, AI" --allow-empty
+git commit -am "test: full-stack smoke verification of CRM, sessions, AI analysis" --allow-empty
 ```
 
 ---
 
 ## Self-Review Notes
 
-- **Spec coverage:** Part 1 (CRM/Sessions backend) → Tasks 1,2,4,8,10. Part 2 (Gemini 2.5 analysis) → Tasks 9,10,15. Part 3 (JWT auth) → Tasks 3,5,6,7,12,13,14. Protection matrix → Task 7 + per-router deps. Frontend wiring → Tasks 12–15. Verification → Tasks 11,16.
-- **Login fallback decision** (only-when-unreachable) → Task 12 `catchError` checks `err.status === 0`.
-- **CRM decision** (backend CRUD, read-only UI) → Task 8 builds full CRUD; no CRM UI task included.
-- **Type consistency:** `AiAnalysis`/`Session` field names match between `models.py` (Task 4), the SQL aliases (Tasks 8/10), and the Angular interfaces (unchanged). `getToken()`/`login()` signatures match between `auth.service.ts` (Task 12), the interceptor (Task 13), and `LoginComponent` (Task 14).
-- **PyMySQL `%%` escaping** noted in CRM and sessions SELECTs (DATE_FORMAT literals).
-- **Router import ordering:** `main.py` (Task 6) imports `crm`/`sessions` which are created in Tasks 8/10 — execution order handles this; noted inline.
+- **Spec coverage:** Part 1 (CRM/Sessions backend) → Tasks 1,2,4,6,8,9. Part 2 (Gemini 2.5) → Tasks 7,8,11. Part 3 REVISED (validate Go JWT) → Tasks 3,5 + per-router deps (6,8). Frontend → Task 11. Verification → Tasks 10,12.
+- **Dropped vs. original** (now done by NYAMPE merge): `users` table/seed, bcrypt, FastAPI token minting, login router, instructors.py protection, frontend AuthService/interceptor/login rewrites.
+- **Auth model alignment:** gating uses `manager` (Go's elevated role), not `admin` (which no longer exists). CRM → `require_manager`; session reads/analyze → `require_auth`; session writes → `require_manager`.
+- **Type consistency:** `StudentCrm`/`Session`/`AiAnalysis` field names match between `models.py` (Task 4), SQL aliases (Tasks 6/8), and the unchanged Angular interfaces. `require_auth`/`require_manager` signatures match between `auth.py` (Task 5) and the routers (Tasks 6,8).
+- **PyMySQL `%%` escaping** applied in the CRM and sessions `DATE_FORMAT` SELECTs.
+- **Integration risks:** (a) FastAPI and Go must share `JWT_SECRET` — Task 3 sets the matching dev default and documents it. (b) Go `.env.example` sets `PORT=8080` which collides with FastAPI's required 8080; the gateway expects Go on 8090 (`GO_BACKEND_URL`) — a NYAMPE-side config concern, noted but out of scope here. (c) Non-manager users hitting `/api/crm/*` get 403 → ApiService mock fallback keeps the screen functional.
+```

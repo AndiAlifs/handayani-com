@@ -160,4 +160,31 @@ export class ApiService {
       catchError(() => of(MOCK_SESSIONS))
     );
   }
+
+  /**
+   * Sends raw instructor notes for AI analysis. On HTTP error (backend down)
+   * falls back to a locally-computed mock analysis so the demo keeps working.
+   */
+  analyzeSession(session: Session, rawNotes: string): Observable<Session> {
+    return this.http.post<Session>(`${this.baseUrl}/api/sessions/${session.id}/analyze`, { rawNotes }).pipe(
+      catchError(() => of(this.mockAnalyze(session, rawNotes)))
+    );
+  }
+
+  private mockAnalyze(session: Session, rawNotes: string): Session {
+    const nearEnd = session.sessionNumber >= session.totalSessions - 2;
+    return {
+      ...session,
+      rawNotes,
+      status: 'completed',
+      aiAnalysis: {
+        strengths: ['Kontrol kemudi dasar', 'Kepatuhan instruksi'],
+        weaknesses: ['Perlu perbaikan pada saat parkir', 'Masih ragu saat perpindahan gigi'],
+        recommendedNextFocus: 'Fokus pada teknik parkir paralel dan mundur di area sempit.',
+        upsellRecommendation: nearEnd
+          ? 'Siswa hampir menyelesaikan paket namun masih ada kekurangan teknis. Tawarkan paket top-up 3 sesi tambahan.'
+          : undefined
+      }
+    };
+  }
 }
