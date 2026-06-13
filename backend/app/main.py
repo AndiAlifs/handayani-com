@@ -7,7 +7,7 @@ mock data when the API is unavailable.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import courses, mechanisms, rag, gateway
+from .routers import courses, crm, mechanisms, rag, sessions, gateway
 
 app = FastAPI(
     title="YPA Handayani Knowledge Base API",
@@ -28,6 +28,8 @@ app.include_router(courses.router)
 app.include_router(mechanisms.router)
 app.include_router(rag.router)
 app.include_router(gateway.router)
+app.include_router(crm.router)
+app.include_router(sessions.router)
 
 
 @app.get("/api/health", tags=["health"])
