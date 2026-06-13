@@ -40,3 +40,44 @@ class Mechanism(BaseModel):
     issuingBody: str
     cost: int
     notes: str = ""
+
+
+# ── CRM & Sessions ──────────────────────────────────────────
+class StudentCrm(BaseModel):
+    id: Optional[int] = None
+    name: str
+    phone: str
+    courseId: int
+    courseName: str
+    status: str = "lead"
+    progressScore: int = 0
+    notes: str = ""
+    createdAt: Optional[str] = None
+
+
+class AiAnalysis(BaseModel):
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    recommendedNextFocus: str = ""
+    upsellRecommendation: Optional[str] = None
+
+
+class Session(BaseModel):
+    id: Optional[int] = None
+    studentId: int
+    studentName: str
+    instructorId: int
+    instructorName: str
+    courseId: int
+    courseName: str
+    startTime: str
+    endTime: str
+    status: str = "scheduled"
+    sessionNumber: int = 1
+    totalSessions: int = 10
+    rawNotes: Optional[str] = None
+    aiAnalysis: Optional[AiAnalysis] = None
+
+
+class AnalyzeRequest(BaseModel):
+    rawNotes: str
