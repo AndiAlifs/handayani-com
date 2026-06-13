@@ -46,7 +46,7 @@
         </div>
         <div class="user-details">
           <span class="user-name">{{ authService.currentUser()?.name }}</span>
-          <span class="user-role">{{ authService.currentUser()?.role === 'admin' ? 'Administrator' : 'Instruktur' }}</span>
+          <span class="user-role">{{ authService.isAdmin() ? 'Administrator' : 'Instruktur' }}</span>
         </div>
       </div>
       <button class="logout-btn" (click)="logout()" aria-label="Logout" id="dashboard-logout">

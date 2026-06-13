@@ -7,7 +7,7 @@ interface NavItem {
   label: string;
   icon: string;
   route: string;
-  roles?: ('admin' | 'instructor')[];
+  roles?: ('manager' | 'instructor')[];
 }
 
 @Component({
@@ -23,12 +23,12 @@ export class DashboardLayoutComponent {
   isMobile = signal(false);
 
   readonly navItems: NavItem[] = [
-    { label: 'Overview', icon: 'overview', route: '/dashboard', roles: ['admin', 'instructor'] },
-    { label: 'Kursus & Harga', icon: 'courses', route: '/dashboard/kursus', roles: ['admin'] },
-    { label: 'Instruktur', icon: 'instructors', route: '/dashboard/instruktur', roles: ['admin'] },
-    { label: 'Mekanisme SIM', icon: 'sim', route: '/dashboard/mekanisme', roles: ['admin'] },
-    { label: 'CRM Siswa', icon: 'crm', route: '/dashboard/crm', roles: ['admin'] },
-    { label: 'Sesi Pelatihan', icon: 'sessions', route: '/dashboard/sesi', roles: ['admin', 'instructor'] },
+    { label: 'Overview', icon: 'overview', route: '/dashboard', roles: ['manager', 'instructor'] },
+    { label: 'Kursus & Harga', icon: 'courses', route: '/dashboard/kursus', roles: ['manager'] },
+    { label: 'Instruktur', icon: 'instructors', route: '/dashboard/instruktur', roles: ['manager'] },
+    { label: 'Mekanisme SIM', icon: 'sim', route: '/dashboard/mekanisme', roles: ['manager'] },
+    { label: 'CRM Siswa', icon: 'crm', route: '/dashboard/crm', roles: ['manager'] },
+    { label: 'Sesi Pelatihan', icon: 'sessions', route: '/dashboard/sesi', roles: ['manager', 'instructor'] },
   ];
 
   get visibleNavItems(): NavItem[] {
