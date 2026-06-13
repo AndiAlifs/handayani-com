@@ -28,3 +28,37 @@ CREATE TABLE IF NOT EXISTS mechanisms (
   notes            VARCHAR(255) NOT NULL DEFAULT '',
   sort_order       INT          NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
+
+-- ── CRM (admin tooling) ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS students_crm (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  name           VARCHAR(128) NOT NULL,
+  phone          VARCHAR(32)  NOT NULL,
+  course_id      INT          NOT NULL,
+  course_name    VARCHAR(128) NOT NULL,
+  status         VARCHAR(16)  NOT NULL DEFAULT 'lead',
+  progress_score INT          NOT NULL DEFAULT 0,
+  notes          TEXT         NOT NULL,
+  created_at     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ── Training Sessions + AI analysis (admin tooling) ─────────
+CREATE TABLE IF NOT EXISTS sessions (
+  id                        INT AUTO_INCREMENT PRIMARY KEY,
+  student_id                INT          NOT NULL,
+  student_name              VARCHAR(128) NOT NULL,
+  instructor_id             INT          NOT NULL,
+  instructor_name           VARCHAR(128) NOT NULL,
+  course_id                 INT          NOT NULL,
+  course_name               VARCHAR(128) NOT NULL,
+  start_time                DATETIME     NOT NULL,
+  end_time                  DATETIME     NOT NULL,
+  status                    VARCHAR(16)  NOT NULL DEFAULT 'scheduled',
+  session_number            INT          NOT NULL DEFAULT 1,
+  total_sessions            INT          NOT NULL DEFAULT 10,
+  raw_notes                 TEXT         NULL,
+  ai_strengths              JSON         NULL,
+  ai_weaknesses             JSON         NULL,
+  ai_recommended_next_focus TEXT         NULL,
+  ai_upsell_recommendation  TEXT         NULL
+) ENGINE=InnoDB;
