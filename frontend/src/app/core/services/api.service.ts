@@ -68,6 +68,30 @@ export class ApiService {
     );
   }
 
+  /**
+   * Public landing-page read. Booked slots carry the student's name, which must
+   * never be exposed publicly — the backend `/schedule/public` endpoint masks
+   * them to "Terisi", and we re-mask here so the mock-data fallback (used when
+   * the backend is down) stays private too.
+   */
+  getPublicInstructorSchedules(): Observable<Instructor[]> {
+    return this.http.get<Instructor[]>(`${this.baseUrl}/api/instructors/schedule/public`).pipe(
+      catchError(() => of(MOCK_INSTRUCTORS)),
+      map(list => this.maskBookedSlots(list))
+    );
+  }
+
+  /** Returns a copy with booked statuses masked — never mutates the shared mock. */
+  private maskBookedSlots(instructors: Instructor[]): Instructor[] {
+    return instructors.map(inst => ({
+      ...inst,
+      schedule: inst.schedule.map(slot => ({
+        ...slot,
+        status: slot.status === 'Tersedia' || slot.status === 'Libur' ? slot.status : 'Terisi'
+      }))
+    }));
+  }
+
   createInstructor(instructor: Instructor): Observable<Instructor> {
     return this.http.post<Instructor>(`${this.baseUrl}/api/instructors`, instructor).pipe(
       catchError(() => of({ ...instructor, id: instructor.id || Date.now() }))
