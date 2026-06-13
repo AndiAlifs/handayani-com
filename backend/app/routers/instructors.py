@@ -4,7 +4,7 @@ from pymysql.connections import Connection
 
 from ..database import get_db
 from ..models import Instructor, ScheduleSlot
-from ..schedule import full_matrix, load_schedule, persist_schedule
+from ..schedule import full_matrix, load_schedule, persist_schedule, public_matrix
 
 router = APIRouter(prefix="/api/instructors", tags=["instructors"])
 
@@ -21,6 +21,21 @@ def list_instructors_with_schedule(db: Connection = Depends(get_db)):
     for row in rows:
         inst = Instructor(**row)
         inst.schedule = full_matrix(load_schedule(db, inst.id))
+        instructors.append(inst)
+    return instructors
+
+
+@router.get("/schedule/public", response_model=list[Instructor])
+def list_instructors_with_public_schedule(db: Connection = Depends(get_db)):
+    """Public landing-page read: identical to /schedule but booked slots are
+    masked to 'Terisi' so customer names never leave the server."""
+    with db.cursor() as cur:
+        cur.execute(_SELECT_ALL)
+        rows = cur.fetchall()
+    instructors = []
+    for row in rows:
+        inst = Instructor(**row)
+        inst.schedule = public_matrix(load_schedule(db, inst.id))
         instructors.append(inst)
     return instructors
 
