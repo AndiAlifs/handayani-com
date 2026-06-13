@@ -2,9 +2,9 @@
 
 # Compiled output
 /frontend/dist
-/tmp
-/out-tsc
-/bazel-out
+/frontend/tmp
+/frontend/out-tsc
+/frontend/bazel-out
 
 # Node
 /frontend/node_modules
@@ -28,13 +28,13 @@ yarn-error.log
 # Miscellaneous
 .sass-cache/
 /connect.lock
-/coverage
+/frontend/coverage
 /libpeerconnection.log
 testem.log
-/typings
+/frontend/typings
 
 # Angular
-.angular/
+/frontend/.angular/
 
 # System files
 .DS_Store
