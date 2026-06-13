@@ -154,8 +154,9 @@ flow (Part 2). CRM dashboard screen stays read-only (user decision).
 def analyze_session_notes(session: Session, raw_notes: str) -> AiAnalysis
 ```
 
-- Reads `GEMINI_API_KEY` and `GEMINI_MODEL` (default `gemini-1.5-flash`) from env.
-- If a key is present: calls `google-generativeai` with an Indonesian-language prompt
+- Reads `GEMINI_API_KEY` and `GEMINI_MODEL` (default `gemini-2.5-flash`) from env.
+- If a key is present: calls Gemini via the `google-genai` SDK (`genai.Client`,
+  `models.generate_content`) with an Indonesian-language prompt
   instructing the model to return strict JSON with keys `strengths` (list),
   `weaknesses` (list), `recommendedNextFocus` (string), `upsellRecommendation`
   (string or null). Parses the JSON into `AiAnalysis`. The prompt includes session
@@ -190,8 +191,8 @@ Protected by `require_auth` (Part 3) — only logged-in admin/instructor users a
 
 ### Config / deps
 
-- `backend/requirements.txt`: add `google-generativeai`.
-- `backend/.env.example`: add `GEMINI_API_KEY=` and `GEMINI_MODEL=gemini-1.5-flash`.
+- `backend/requirements.txt`: add `google-genai` (current Gemini SDK, supports 2.5).
+- `backend/.env.example`: add `GEMINI_API_KEY=` and `GEMINI_MODEL=gemini-2.5-flash`.
 
 ---
 
@@ -279,8 +280,9 @@ Seed `admin`/`admin123` (admin, "Administrator") and `instruktur`/`instruktur123
 
 ## Risks / notes
 
-- `google-generativeai` model id may need adjusting to whatever is current/available;
-  the stub fallback means an invalid model degrades gracefully rather than breaking.
+- The `GEMINI_MODEL` id (default `gemini-2.5-flash`) can be swapped to `gemini-2.5-pro`
+  or another available model via env; the stub fallback means an invalid model
+  degrades gracefully rather than breaking.
 - Adding auth to admin reads changes behavior when the backend is up but the user is
   unauthenticated — mitigated because those screens are already behind the Angular
   `authGuard`, and the interceptor attaches the token.
