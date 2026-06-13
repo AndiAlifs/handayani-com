@@ -33,6 +33,22 @@ def full_matrix(stored: dict[str, str]) -> list[ScheduleSlot]:
     return slots
 
 
+# Statuses safe to expose publicly. A booked slot's status holds the student's
+# name (set from the admin dashboard / CRM), so anything else is a booking and
+# must be masked before it leaves the server on the public-facing read.
+PUBLIC_STATUSES = {DEFAULT_STATUS, "Libur"}
+BOOKED_PUBLIC_LABEL = "Terisi"
+
+
+def public_matrix(stored: dict[str, str]) -> list[ScheduleSlot]:
+    """Full matrix with any booking detail (e.g. a customer name) masked to 'Terisi'."""
+    return [
+        slot if slot.status in PUBLIC_STATUSES
+        else ScheduleSlot(day=slot.day, timeSlot=slot.timeSlot, status=BOOKED_PUBLIC_LABEL)
+        for slot in full_matrix(stored)
+    ]
+
+
 def persist_schedule(db: Connection, instructor_id: int, slots: list[ScheduleSlot]) -> None:
     """Replace all schedule rows for one instructor (within the caller's transaction)."""
     with db.cursor() as cur:

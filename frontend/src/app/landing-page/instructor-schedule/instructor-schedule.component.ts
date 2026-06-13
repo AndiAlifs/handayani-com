@@ -19,7 +19,7 @@ export class InstructorScheduleComponent implements OnInit {
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
-    this.api.getInstructorSchedules().subscribe(data => {
+    this.api.getPublicInstructorSchedules().subscribe(data => {
       this.instructors = data;
       if (data.length > 0) this.selectedInstructor = data[0];
     });
@@ -41,5 +41,11 @@ export class InstructorScheduleComponent implements OnInit {
     if (status === 'Tersedia') return 'slot-available';
     if (status === 'Libur') return 'slot-holiday';
     return 'slot-booked';
+  }
+
+  // Public page must not leak customer names — any booked slot reads "Terisi".
+  getSlotLabel(status: string): string {
+    if (status === 'Tersedia' || status === 'Libur') return status;
+    return 'Terisi';
   }
 }
