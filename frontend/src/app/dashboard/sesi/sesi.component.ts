@@ -70,24 +70,12 @@ export class SesiComponent implements OnInit {
     if (!this.selectedSession || !this.newNotes.trim()) return;
 
     this.isAnalyzing = true;
-    
-    // Simulate AI processing delay
-    setTimeout(() => {
-      if (this.selectedSession) {
-        this.selectedSession.rawNotes = this.newNotes;
-        this.selectedSession.status = 'completed';
-        
-        // Mock AI response generation
-        this.selectedSession.aiAnalysis = {
-          strengths: ['Kontrol kemudi dasar', 'Kepatuhan instruksi'],
-          weaknesses: ['Perlu perbaikan pada saat parkir', 'Masih ragu saat perpindahan gigi'],
-          recommendedNextFocus: 'Fokus pada teknik parkir paralel dan mundur di area sempit.',
-          upsellRecommendation: this.selectedSession.sessionNumber >= this.selectedSession.totalSessions - 2 
-            ? 'Siswa hampir menyelesaikan paket namun masih ada kekurangan teknis. Tawarkan paket top-up 3 sesi tambahan.' 
-            : undefined
-        };
-      }
+    this.api.analyzeSession(this.selectedSession, this.newNotes).subscribe(updated => {
+      const idx = this.sessions.findIndex(s => s.id === updated.id);
+      if (idx !== -1) this.sessions[idx] = updated;
+      this.selectedSession = updated;
+      this.newNotes = updated.rawNotes || '';
       this.isAnalyzing = false;
-    }, 1500);
+    });
   }
 }
