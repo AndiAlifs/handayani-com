@@ -1,4 +1,7 @@
-# 🚗 Handayani.com — All-in-One Driving School Management & AI Platform
+# Handayani.com — All-in-One Driving School Management & AI Platform
+
+**Date:** 2025-01-01 · **Status:** Archived — founding PRD, platform implemented · **Owner:** Andi Alifsyah
+
 > **Master Product Requirements Document (PRD)**
 
 ---
