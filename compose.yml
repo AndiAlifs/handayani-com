@@ -4,17 +4,20 @@
 #
 # Brings up four services on one network:
 #   db          MySQL 8 — single `handayani` database shared by both backends.
-#               FastAPI owns courses/mechanisms/students_crm/sessions (loaded from
-#               schema.sql + seed.sql on first boot). The Go service auto-migrates
-#               and seeds its own tables (users, attendances, students, ...).
-#   attendance  NYAMPE Go backend (auth + attendance), :8090. Issues the JWT.
-#   api         FastAPI gateway + CRM/Sessions/RAG, published on host :8080.
-#               Validates the Go-issued JWT (shared JWT_SECRET) and proxies
-#               /api/auth|attendance|admin|instructor to `attendance`.
+#               schema.sql + seed.sql load the courses/mechanisms/students_crm/
+#               sessions tables on first boot. The Go service auto-migrates and
+#               seeds its own tables (users, attendances, students, ...).
+#   attendance  NYAMPE Go backend — the PUBLIC API GATEWAY, published on :8080.
+#               Serves auth + attendance + native CRUD for courses/mechanisms/
+#               crm/sessions, and reverse-proxies the AI endpoints to `ai`.
+#   ai          FastAPI internal AI service, :8081 (NOT published by default).
+#               Serves /api/sessions/{id}/analyze and /api/rag/knowledge-sync.
+#               Reads courses/mechanisms/sessions from MySQL directly; calls the
+#               Go gateway for the instructor list (shared JWT_SECRET).
 #   web         Angular SPA built and served by nginx, published on host :4200.
 #
-# The browser talks to the API on http://localhost:8080 (baked into the Angular
-# build) and to the SPA on http://localhost:4200.
+# The browser talks to the API gateway on http://localhost:8080 (baked into the
+# Angular build) and to the SPA on http://localhost:4200.
 #
 # Optional: export GEMINI_API_KEY=... before `up` to enable real Gemini 2.5
 # session analysis; leave it unset to use the deterministic stub.
@@ -49,15 +52,17 @@ services:
       DB_PASSWORD: password
       DB_NAME: handayani
       JWT_SECRET: ${JWT_SECRET:-super-secret-key-default}
-      PORT: "8090"
+      PORT: "8080"
       GIN_MODE: release
+      # Where the gateway reverse-proxies the AI endpoints (analyze + rag sync).
+      AI_SERVICE_URL: http://ai:8081
     ports:
-      - "8090:8090"
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
 
-  api:
+  ai:
     build: ./backend
     environment:
       DB_HOST: db
@@ -65,29 +70,28 @@ services:
       DB_USER: root
       DB_PASSWORD: password
       DB_NAME: handayani
-      # MUST match the Go service so FastAPI can validate its tokens.
+      # MUST match the Go service: validates the token Go forwards on /analyze,
+      # and Go validates the service token RAG mints.
       JWT_SECRET: ${JWT_SECRET:-super-secret-key-default}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
-      GO_BACKEND_URL: http://attendance:8090
-      # Manager service account so the public RAG sync can pull instructors from
-      # the Go service. Leave unset to omit the instructor section.
+      # RAG calls the Go gateway for the instructor list.
+      GO_BACKEND_URL: http://attendance:8080
       RAG_SERVICE_USERNAME: ${RAG_SERVICE_USERNAME:-}
       RAG_SERVICE_PASSWORD: ${RAG_SERVICE_PASSWORD:-}
-    ports:
-      - "8080:8080"
+    # Internal only. Uncomment to hit the AI service directly from the host.
+    # ports:
+    #   - "8081:8081"
     depends_on:
       db:
         condition: service_healthy
-      attendance:
-        condition: service_started
 
   web:
     build: ./frontend
     ports:
       - "4200:80"
     depends_on:
-      - api
+      - attendance
 
 volumes:
   db-data:
