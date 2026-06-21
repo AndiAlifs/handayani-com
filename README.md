@@ -53,7 +53,7 @@ their comments.
 
 ```
                               ┌───────────────────────────────────────────────┐
-   Browser                    │           NYAMPE Go gateway (attendance)        │
+   Browser                    │              NYAMPE Go gateway (core)           │
  ┌──────────┐                 │              http://localhost:8080              │
  │ Angular  │  HTTPS / JSON   │                                                 │
  │  SPA     │ ───────────────►│  /api/courses      (Epic 2, CRUD)               │
@@ -117,7 +117,7 @@ Key design decisions:
 
 ```
 .
-├── compose.yml              # one-shot Docker stack (db + attendance + ai + web)
+├── compose.yml              # one-shot Docker stack (db + core + ai + web)
 ├── DOCKER.md                # Docker usage notes
 ├── CLAUDE.md                # contributor/agent guidance for this repo
 ├── docs/
@@ -146,7 +146,7 @@ Key design decisions:
 │   ├── requirements.txt · Dockerfile
 │   └── tests/
 │
-└── attendance-backend/      # "NYAMPE" Go service — the API gateway (auth + attendance + content CRUD)
+└── core/                    # "NYAMPE" Go service — the API gateway (auth + attendance + content CRUD)
     ├── main.go               # routes, CORS, JWT middleware groups, AI reverse-proxy, prefix aliases
     ├── auth/                 # JWT issue + verify, role middleware
     ├── handlers/             # auth, attendance, admin, instructor, settings,
@@ -171,7 +171,7 @@ This brings up four services on one network:
 | Service | URL / port | Description |
 |---------|-----------|-------------|
 | `web` | http://localhost:4200 | Angular SPA (production build via nginx) |
-| `attendance` | http://localhost:8080 | NYAMPE Go backend — public API gateway (auth + attendance + content CRUD) |
+| `core` | http://localhost:8080 | NYAMPE Go backend — public API gateway (auth + attendance + content CRUD) |
 | `ai` | (internal `:8081`) | FastAPI AI service — `/analyze` + RAG; not published by default |
 | `db` | localhost:3306 | MySQL 8, single `handayani` database |
 
@@ -186,7 +186,7 @@ Common commands:
 
 ```bash
 docker compose up --build -d     # run detached
-docker compose logs -f attendance  # tail one service (gateway); or `ai`, `db`, `web`
+docker compose logs -f core      # tail one service (gateway); or `ai`, `db`, `web`
 docker compose down              # stop (keeps the db volume)
 docker compose down -v           # stop and wipe the database (re-seeds next up)
 ```
@@ -209,7 +209,7 @@ mysql -u root -p < backend/seed.sql     # seeds courses/mechanisms/CRM/sessions
 The Go service creates and seeds its own tables automatically on first run. The content tables must
 exist before the Go gateway serves traffic, so load these first.
 
-### 2. Go gateway — `cd attendance-backend`
+### 2. Go gateway — `cd core`
 
 ```bash
 cp .env.example .env              # set DB_*, JWT_SECRET, AI_SERVICE_URL; PORT=8080
@@ -259,7 +259,7 @@ npm test                          # Karma + Jasmine unit tests (Chrome)
 
 Run uvicorn on `--port 8081` (the Go gateway is the front door on 8080).
 
-### Go gateway (`attendance-backend/.env`)
+### Go gateway (`core/.env`)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|

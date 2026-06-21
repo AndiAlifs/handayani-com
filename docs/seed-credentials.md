@@ -1,9 +1,9 @@
 # Seeded Accounts & Data Reference
 
-All login accounts live in the **Go / NYAMPE attendance service** (`attendance-backend/seed/seed.go`).
-The browser authenticates against FastAPI, which proxies `/api/auth/*` to the Go service.
-The FastAPI/MySQL side (`backend/seed.sql`) holds **content only** (courses, mechanisms, CRM
-students, sessions) — it has no login accounts of its own.
+All login accounts live in the **Go / NYAMPE core service** (`core/seed/seed.go`).
+The browser authenticates against the Go gateway at `/api/auth/login` (its native `/api/login`).
+The content side (`backend/schema.sql` + `backend/seed.sql`, loaded into the shared MySQL) holds
+**content only** (courses, mechanisms, CRM students, sessions) — it has no login accounts of its own.
 
 > ⚠️ **Demo data.** Every password equals its username. Do not deploy these to production.
 

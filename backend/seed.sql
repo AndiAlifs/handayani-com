@@ -2,7 +2,7 @@
 -- Mirrors and feeds the public landing page, admin CRM/session dashboards, and
 -- the RAG knowledge-sync endpoint. Run against a fresh DB (explicit ids assume
 -- empty tables). Instructor names are kept consistent with the Go/NYAMPE seeder
--- (attendance-backend/seed/seed.go) so the two backends line up by name.
+-- (core/seed/seed.go) so the two backends line up by name.
 USE handayani;
 
 -- Idempotent reload: clear FastAPI-owned tables before re-seeding.
