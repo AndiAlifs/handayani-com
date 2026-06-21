@@ -4,11 +4,11 @@ import (
 	"log"
 	"os"
 
-	"field-attendance-system/auth"
-	"field-attendance-system/database"
-	"field-attendance-system/handlers"
-	"field-attendance-system/models"
-	"field-attendance-system/seed"
+	"handayani-core/auth"
+	"handayani-core/database"
+	"handayani-core/handlers"
+	"handayani-core/models"
+	"handayani-core/seed"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

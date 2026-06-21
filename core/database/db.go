@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"field-attendance-system/models"
+	"handayani-core/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

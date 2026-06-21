@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"field-attendance-system/database"
-	"field-attendance-system/models"
+	"handayani-core/database"
+	"handayani-core/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"field-attendance-system/auth"
-	"field-attendance-system/database"
-	"field-attendance-system/models"
+	"handayani-core/auth"
+	"handayani-core/database"
+	"handayani-core/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

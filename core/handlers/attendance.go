@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"field-attendance-system/database"
-	"field-attendance-system/models"
-	"field-attendance-system/utils"
+	"handayani-core/database"
+	"handayani-core/models"
+	"handayani-core/utils"
 
 	"github.com/gin-gonic/gin"
 )

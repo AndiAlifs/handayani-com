@@ -1,4 +1,4 @@
-module field-attendance-system
+module handayani-core
 
 go 1.24.3
 

@@ -1,4 +1,4 @@
-# NYAMPE attendance backend (Go). Multi-stage: build a static binary, run on alpine.
+# NYAMPE core service (Go) — the API gateway. Multi-stage: build a static binary, run on alpine.
 FROM golang:1.24-alpine AS build
 
 WORKDIR /src
@@ -17,5 +17,5 @@ WORKDIR /app
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/server .
 
-EXPOSE 8090
+EXPOSE 8080
 CMD ["./server"]

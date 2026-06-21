@@ -6,9 +6,9 @@ import (
 	"math/rand"
 	"time"
 
-	"field-attendance-system/database"
-	"field-attendance-system/models"
-	"field-attendance-system/utils"
+	"handayani-core/database"
+	"handayani-core/models"
+	"handayani-core/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )

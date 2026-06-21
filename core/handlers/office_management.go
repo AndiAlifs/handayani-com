@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"field-attendance-system/database"
-	"field-attendance-system/models"
+	"handayani-core/database"
+	"handayani-core/models"
 	"net/http"
 	"strconv"
 
