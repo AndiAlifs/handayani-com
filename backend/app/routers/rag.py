@@ -26,9 +26,12 @@ from fastapi.responses import PlainTextResponse
 from pymysql.connections import Connection
 
 from ..database import get_db
-from .gateway import GO_BACKEND_URL
 
 router = APIRouter(prefix="/api/rag", tags=["rag"])
+
+# The Go service is now the front door; RAG calls it server-side for the
+# instructor list. (Formerly imported from the now-removed gateway router.)
+GO_BACKEND_URL = os.getenv("GO_BACKEND_URL", "http://localhost:8080").rstrip("/")
 
 _GO_TIMEOUT = httpx.Timeout(10.0)
 # Cached manager token for the instructor fetch (shared across requests).

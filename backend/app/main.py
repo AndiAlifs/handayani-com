@@ -1,34 +1,26 @@
-"""YPA Handayani Knowledge Base API (FastAPI + MySQL).
+"""YPA Handayani internal AI service (FastAPI + MySQL).
 
-Implements PRD Epics 2–5. The Angular ApiService points at
-http://localhost:8080 and consumes these endpoints, falling back to bundled
-mock data when the API is unavailable.
+A slim internal service behind the Go API gateway. It serves only:
+  - POST /api/sessions/{id}/analyze   (Gemini session analysis)
+  - GET  /api/rag/knowledge-sync[.json]   (RAG knowledge base for the chat bot)
+  - GET  /api/health
+
+The Go service (port 8080) is the single public front door and reverse-proxies
+these endpoints here (port 8081). The browser never reaches this service
+directly, so no CORS middleware is needed — Go terminates the browser request.
+Courses / mechanisms / CRM / sessions CRUD moved to the Go gateway.
 """
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import courses, crm, mechanisms, rag, sessions, gateway
+from .routers import rag, sessions
 
 app = FastAPI(
-    title="YPA Handayani Knowledge Base API",
-    version="1.0.0",
-    description="Courses, instructors & schedules, SIM mechanisms, and RAG knowledge sync.",
+    title="YPA Handayani AI Service",
+    version="2.0.0",
+    description="Gemini session analysis + RAG knowledge sync (internal, behind the Go gateway).",
 )
 
-# Open CORS so the Angular dev server (localhost:4200) and the RAG bot poller
-# can call the API from another origin.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(courses.router)
-app.include_router(mechanisms.router)
 app.include_router(rag.router)
-app.include_router(gateway.router)
-app.include_router(crm.router)
 app.include_router(sessions.router)
 
 

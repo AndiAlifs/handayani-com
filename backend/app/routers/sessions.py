@@ -1,9 +1,10 @@
-"""Training sessions CRUD + AI analysis (admin tooling).
+"""Training session AI analysis (internal AI service).
 
-Reads/analyze require any authenticated user; writes require manager. The four
-ai_* columns map to a nested AiAnalysis object on the wire (`aiAnalysis`, or
-null when empty) to match the Angular Session interface. JSON columns
-deserialize to Python lists via PyMySQL."""
+Session CRUD (list/create/update/delete) now lives in the Go gateway; this
+service only runs the Gemini analysis and persists the result. Analyze requires
+any authenticated user. The four ai_* columns map to a nested AiAnalysis object
+on the wire (`aiAnalysis`, or null when empty) to match the Angular Session
+interface. JSON columns deserialize to Python lists via PyMySQL."""
 import json
 from typing import Optional
 
@@ -11,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pymysql.connections import Connection
 
 from ..ai import analyze_session_notes
-from ..auth import require_auth, require_manager
+from ..auth import require_auth
 from ..database import get_db
 from ..models import AiAnalysis, AnalyzeRequest, Session
 
@@ -69,50 +70,6 @@ def _fetch_one(db: Connection, session_id: int) -> Optional[dict]:
     with db.cursor() as cur:
         cur.execute(_SELECT + " WHERE id=%s", (session_id,))
         return cur.fetchone()
-
-
-@router.get("", response_model=list[Session])
-def list_sessions(db: Connection = Depends(get_db), _: object = Depends(require_auth)):
-    with db.cursor() as cur:
-        cur.execute(_SELECT + " ORDER BY start_time")
-        return [_row_to_session(row) for row in cur.fetchall()]
-
-
-@router.post("", response_model=Session, status_code=status.HTTP_201_CREATED)
-def create_session(session: Session, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
-    with db.cursor() as cur:
-        cur.execute(
-            "INSERT INTO sessions "
-            "(student_id, student_name, instructor_id, instructor_name, course_id, "
-            "course_name, start_time, end_time, status, session_number, total_sessions, raw_notes) "
-            "VALUES (%(studentId)s, %(studentName)s, %(instructorId)s, %(instructorName)s, "
-            "%(courseId)s, %(courseName)s, %(startTime)s, %(endTime)s, %(status)s, "
-            "%(sessionNumber)s, %(totalSessions)s, %(rawNotes)s)",
-            session.model_dump(exclude={"id", "aiAnalysis"}),
-        )
-        session.id = cur.lastrowid
-    return session
-
-
-@router.put("/{session_id}", response_model=Session)
-def update_session(session_id: int, session: Session, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
-    session.id = session_id
-    with db.cursor() as cur:
-        cur.execute(
-            "UPDATE sessions SET student_id=%(studentId)s, student_name=%(studentName)s, "
-            "instructor_id=%(instructorId)s, instructor_name=%(instructorName)s, "
-            "course_id=%(courseId)s, course_name=%(courseName)s, start_time=%(startTime)s, "
-            "end_time=%(endTime)s, status=%(status)s, session_number=%(sessionNumber)s, "
-            "total_sessions=%(totalSessions)s, raw_notes=%(rawNotes)s WHERE id=%(id)s",
-            session.model_dump(exclude={"aiAnalysis"}),
-        )
-    return session
-
-
-@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_session(session_id: int, db: Connection = Depends(get_db), _: object = Depends(require_manager)):
-    with db.cursor() as cur:
-        cur.execute("DELETE FROM sessions WHERE id=%(id)s", {"id": session_id})
 
 
 @router.post("/{session_id}/analyze", response_model=Session)
