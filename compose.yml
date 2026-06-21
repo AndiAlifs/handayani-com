@@ -7,7 +7,7 @@
 #               schema.sql + seed.sql load the courses/mechanisms/students_crm/
 #               sessions tables on first boot. The Go service auto-migrates and
 #               seeds its own tables (users, attendances, students, ...).
-#   attendance  NYAMPE Go backend — the PUBLIC API GATEWAY, published on :8080.
+#   core        NYAMPE Go backend — the PUBLIC API GATEWAY, published on :8080.
 #               Serves auth + attendance + native CRUD for courses/mechanisms/
 #               crm/sessions, and reverse-proxies the AI endpoints to `ai`.
 #   ai          FastAPI internal AI service, :8081 (NOT published by default).
@@ -43,8 +43,8 @@ services:
       retries: 20
       start_period: 30s
 
-  attendance:
-    build: ./attendance-backend
+  core:
+    build: ./core
     environment:
       DB_HOST: db
       DB_PORT: "3306"
@@ -76,7 +76,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       # RAG calls the Go gateway for the instructor list.
-      GO_BACKEND_URL: http://attendance:8080
+      GO_BACKEND_URL: http://core:8080
       RAG_SERVICE_USERNAME: ${RAG_SERVICE_USERNAME:-}
       RAG_SERVICE_PASSWORD: ${RAG_SERVICE_PASSWORD:-}
     # Internal only. Uncomment to hit the AI service directly from the host.
@@ -91,7 +91,7 @@ services:
     ports:
       - "4200:80"
     depends_on:
-      - attendance
+      - core
 
 volumes:
   db-data:
