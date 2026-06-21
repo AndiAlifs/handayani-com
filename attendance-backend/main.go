@@ -143,9 +143,63 @@ func main() {
 		}
 	}
 
+	// ── Knowledge-base content (migrated from the FastAPI service) ──────────
+	// These speak camelCase with bare JSON bodies to match the Angular contract.
+	// Public groups live on the root engine so the /api AuthMiddleware group
+	// above does not force auth onto them.
+	r.GET("/api/health", handlers.Health)
+
+	// Courses & mechanisms — public (preserves prior FastAPI behaviour; writes
+	// are unauthenticated, a pre-existing gap tracked as a follow-up).
+	r.GET("/api/courses", handlers.ListCourses)
+	r.POST("/api/courses", handlers.CreateCourse)
+	r.PUT("/api/courses/:id", handlers.UpdateCourse)
+	r.DELETE("/api/courses/:id", handlers.DeleteCourse)
+
+	r.GET("/api/mechanisms", handlers.ListMechanisms)
+	r.POST("/api/mechanisms", handlers.CreateMechanism)
+	r.PUT("/api/mechanisms/:id", handlers.UpdateMechanism)
+	r.DELETE("/api/mechanisms/:id", handlers.DeleteMechanism)
+
+	// CRM students — manager-only.
+	crm := r.Group("/api/crm/students")
+	crm.Use(auth.AuthMiddleware(), auth.ManagerMiddleware())
+	{
+		crm.GET("", handlers.ListStudentsCrm)
+		crm.POST("", handlers.CreateStudentCrm)
+		crm.PUT("/:id", handlers.UpdateStudentCrm)
+		crm.DELETE("/:id", handlers.DeleteStudentCrm)
+	}
+
+	// Sessions — GET any-authenticated, writes manager-only; analyze is proxied
+	// to the Python AI service (token still required).
+	sessions := r.Group("/api/sessions")
+	sessions.Use(auth.AuthMiddleware())
+	{
+		sessions.GET("", handlers.ListSessions)
+		sessions.POST("", auth.ManagerMiddleware(), handlers.CreateSession)
+		sessions.PUT("/:id", auth.ManagerMiddleware(), handlers.UpdateSession)
+		sessions.DELETE("/:id", auth.ManagerMiddleware(), handlers.DeleteSession)
+		sessions.POST("/:id/analyze", handlers.ProxyToAI)
+	}
+
+	// RAG knowledge-sync — public, proxied to the Python AI service.
+	r.GET("/api/rag/knowledge-sync", handlers.ProxyToAI)
+	r.GET("/api/rag/knowledge-sync.json", handlers.ProxyToAI)
+
+	// Front-door prefix aliases: the SPA calls /api/auth/* and /api/attendance/*,
+	// which the old FastAPI gateway rewrote to this service's native /api/* routes.
+	// (/api/admin/* and /api/instructor/* are served natively, so need no alias.)
+	aliasToAPI := func(c *gin.Context) {
+		c.Request.URL.Path = "/api" + c.Param("rest")
+		r.HandleContext(c)
+	}
+	r.Any("/api/auth/*rest", aliasToAPI)
+	r.Any("/api/attendance/*rest", aliasToAPI)
+
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8090"
+		port = "8080"
 	}
 	log.Printf("Server starting on port %s...", port)
 	r.Run(":" + port)
