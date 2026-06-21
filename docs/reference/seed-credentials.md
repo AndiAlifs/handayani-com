@@ -1,5 +1,7 @@
 # Seeded Accounts & Data Reference
 
+**Date:** 2026-06-21 · **Status:** Active reference · **Owner:** Andi Alifsyah
+
 All login accounts live in the **Go / NYAMPE core service** (`core/seed/seed.go`).
 The browser authenticates against the Go gateway at `/api/auth/login` (its native `/api/login`).
 The content side (`backend/schema.sql` + `backend/seed.sql`, loaded into the shared MySQL) holds
