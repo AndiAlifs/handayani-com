@@ -40,10 +40,10 @@ their comments.
 | Layer | Technology |
 |-------|-----------|
 | Frontend | Angular 18 (standalone components, signals), `@ngx-translate` v17 (id/en), served by nginx in prod |
-| Knowledge-Base API | Python 3.10+/3.12 · FastAPI · raw **PyMySQL** (no ORM) · `httpx` (gateway) |
-| Attendance/Auth API ("NYAMPE") | Go 1.24 · Gin · **GORM** (auto-migrate) · `golang-jwt` |
+| API gateway + Attendance/Auth ("NYAMPE") | Go 1.24 · Gin · **GORM** (auto-migrate) · `golang-jwt` — the public front door on `:8080` |
+| AI service | Python 3.10+/3.12 · FastAPI · raw **PyMySQL** (no ORM) · `httpx` — internal on `:8081`, behind the Go gateway |
 | Database | MySQL 8 — a single `handayani` database shared by both backends |
-| Auth | HS256 JWT minted by the Go service, validated by FastAPI with a shared `JWT_SECRET` |
+| Auth | HS256 JWT minted by the Go service; the AI service validates the forwarded token on `/analyze` with a shared `JWT_SECRET` |
 | AI | Google **Gemini 2.5** via the `google-genai` SDK (with a deterministic offline stub) |
 | Orchestration | Docker Compose (`compose.yml`) — 4 services on one network |
 
@@ -53,32 +53,32 @@ their comments.
 
 ```
                               ┌───────────────────────────────────────────────┐
-   Browser                    │                  FastAPI  (api)                 │
- ┌──────────┐                 │                http://localhost:8080            │
+   Browser                    │           NYAMPE Go gateway (attendance)        │
+ ┌──────────┐                 │              http://localhost:8080              │
  │ Angular  │  HTTPS / JSON   │                                                 │
  │  SPA     │ ───────────────►│  /api/courses      (Epic 2, CRUD)               │
  │ :4200    │   (Bearer JWT)  │  /api/mechanisms   (Epic 4, CRUD)               │
  └──────────┘                 │  /api/crm/students (manager-only CRUD)          │
-   ▲                          │  /api/sessions     (CRUD + /analyze → Gemini)   │
-   │ token in localStorage    │  /api/rag/knowledge-sync (text/markdown)        │
-   │ (auth interceptor)       │                                                 │
-   │                          │  /api/auth|attendance|admin|instructor  ──┐     │
-   │                          └───────────────────────────────────────────┼─────┘
-   │                                                                       │ reverse-proxy
-   │                                                                       ▼ (httpx)
-   │                          ┌───────────────────────────────────────────────┐
-   │                          │            NYAMPE Go backend (attendance)       │
-   │   login response         │              http://localhost:8090             │
-   └──────────────────────────│  /api/login /api/register   → issues the JWT    │
-       { token, role, ... }   │  /api/clock-in /clock-out /leave /my-*          │
-                              │  /api/admin/*   (manager)                       │
-                              │  /api/instructor/*  (instructor)                │
+   ▲                          │  /api/sessions     (CRUD)                       │
+   │ token in localStorage    │  /api/login /register /clock-in /admin/* ...    │
+   │ (auth interceptor)       │  /api/auth|attendance/*  → native /api/* alias  │
+   │                          │                                                 │
+   │                          │  /api/sessions/{id}/analyze   ──┐                │
+   │   login response         │  /api/rag/knowledge-sync[.json] ┤ reverse-proxy  │
+   └──────────────────────────└─────────────────────────────────┼───────────────┘
+       { token, role, ... }                                      │
+                                                                 ▼
+                              ┌───────────────────────────────────────────────┐
+                              │             FastAPI AI service (ai)             │
+                              │          http://localhost:8081 (internal)       │
+                              │  /api/sessions/{id}/analyze   → Gemini 2.5      │
+                              │  /api/rag/knowledge-sync      → text/markdown   │
                               └───────────────────────────────────────────────┘
                                             │                     │
                                             ▼                     ▼
                               ┌───────────────────────────────────────────────┐
                               │                   MySQL 8 (db) :3306           │
-                              │  FastAPI tables: courses, mechanisms,           │
+                              │  Content tables: courses, mechanisms,           │
                               │     students_crm, sessions   (schema.sql/seed)  │
                               │  Go tables (GORM auto-migrate): users,          │
                               │     attendances, leave_requests, offices,       │
@@ -86,19 +86,26 @@ their comments.
                               └───────────────────────────────────────────────┘
 ```
 
+(RAG also calls back into the Go gateway server-side, with a manager service account, to fetch the
+instructor list for the knowledge base.)
+
 Key design decisions:
 
-- **The browser only ever talks to FastAPI** (`:8080`). Auth and attendance live in the Go service,
-  but the SPA reaches them through FastAPI's gateway router (`backend/app/routers/gateway.py`),
-  which forwards `/api/auth|attendance|admin|instructor/*` to the Go service and rewrites the prefix
-  (`/api/auth/login` → `/api/login`, `/api/attendance/clock-in` → `/api/clock-in`).
-- **One JWT, two services.** The Go service signs an HS256 token; FastAPI validates it with the
-  *same* `JWT_SECRET`. Neither stores sessions server-side.
-- **One database, two owners.** Both backends use the `handayani` schema. FastAPI's tables are loaded
-  from `backend/schema.sql` + `backend/seed.sql`; the Go service auto-migrates and seeds its own.
-- **JSON is camelCase on both sides.** FastAPI's Pydantic models in `backend/app/models.py`
-  deliberately use camelCase (e.g. `timeSlot`, `progressScore`) so payloads round-trip to the Angular
-  TypeScript models with no transformation. **When you add a field, change both sides.**
+- **The browser only ever talks to the Go gateway** (`:8080`). It serves auth, attendance, and all
+  content CRUD natively, and reverse-proxies the two AI endpoints to the internal FastAPI service
+  (`:8081`). The SPA's `/api/auth/*` and `/api/attendance/*` calls are rewritten to the Go service's
+  native `/api/*` routes (`/api/auth/login` → `/api/login`, `/api/attendance/clock-in` → `/api/clock-in`);
+  `/api/admin/*` and `/api/instructor/*` are served at those exact paths.
+- **One JWT, two services.** The Go service signs an HS256 token and validates it on its protected
+  routes; the AI service validates the *same* token (shared `JWT_SECRET`) on `/analyze`, and the Go
+  service validates the service token RAG mints to fetch instructors. Neither stores sessions server-side.
+- **One shared database.** Both backends use the `handayani` schema. The content tables are loaded
+  from `backend/schema.sql` + `backend/seed.sql`; the Go service auto-migrates and seeds its own. The
+  AI service reads courses/mechanisms and reads/writes the `sessions.ai_*` columns directly.
+- **JSON is camelCase on both sides.** The Go gateway's content structs (`models/knowledge.go`) and
+  FastAPI's Pydantic models (`backend/app/models.py`) deliberately use camelCase (e.g. `programType`,
+  `progressScore`) so payloads round-trip to the Angular TypeScript models with no transformation.
+  **When you add a field, change both sides.**
 - **Graceful degradation is load-bearing.** The Angular `ApiService` wraps every read in `catchError`
   and falls back to bundled mock data (`core/services/mock-data.ts`); writes echo their payload back
   (assigning a client-side `Date.now()` id on create). The dashboard stays usable with the backend
@@ -110,7 +117,7 @@ Key design decisions:
 
 ```
 .
-├── compose.yml              # one-shot Docker stack (db + attendance + api + web)
+├── compose.yml              # one-shot Docker stack (db + attendance + ai + web)
 ├── DOCKER.md                # Docker usage notes
 ├── CLAUDE.md                # contributor/agent guidance for this repo
 ├── docs/
@@ -127,24 +134,24 @@ Key design decisions:
 │   ├── public/i18n/{id,en}.json
 │   ├── Dockerfile · nginx.conf
 │
-├── backend/                 # FastAPI Knowledge-Base API + gateway
+├── backend/                 # FastAPI internal AI service (analyze + RAG)
 │   ├── app/
-│   │   ├── main.py           # app, CORS, router registration, /api/health
+│   │   ├── main.py           # app + router registration + /api/health (no CORS — internal)
 │   │   ├── database.py       # PyMySQL connection (get_db dependency)
-│   │   ├── models.py         # Pydantic schemas (camelCase)
-│   │   ├── auth.py           # validates the Go-issued JWT
+│   │   ├── models.py         # Pydantic schemas for /analyze (camelCase)
+│   │   ├── auth.py           # validates the Go-issued JWT (forwarded on /analyze)
 │   │   ├── ai.py             # Gemini session analysis (+ stub)
-│   │   ├── schedule.py       # sparse weekly-matrix helpers
-│   │   └── routers/          # courses, mechanisms, rag, crm, sessions, gateway
-│   ├── schema.sql · seed.sql
+│   │   └── routers/          # rag, sessions (analyze-only)
+│   ├── schema.sql · seed.sql # content tables, loaded by MySQL initdb (shared DB)
 │   ├── requirements.txt · Dockerfile
-│   └── tests/                # pytest + respx (gateway proxy tests)
+│   └── tests/
 │
-└── attendance-backend/      # "NYAMPE" Go service (auth + field attendance)
-    ├── main.go               # routes, CORS, JWT middleware groups
+└── attendance-backend/      # "NYAMPE" Go service — the API gateway (auth + attendance + content CRUD)
+    ├── main.go               # routes, CORS, JWT middleware groups, AI reverse-proxy, prefix aliases
     ├── auth/                 # JWT issue + verify, role middleware
-    ├── handlers/             # auth, attendance, leave, office, admin, instructor, settings
-    ├── models/               # GORM models (User, Attendance, LeaveRequest, Office, ...)
+    ├── handlers/             # auth, attendance, admin, instructor, settings,
+    │                         #   courses, mechanisms, crm, sessions, aiproxy
+    ├── models/               # GORM models (User, Attendance, ...; knowledge.go: Course/Mechanism/...)
     ├── seed/                 # demo users, offices, students, attendance history
     └── Dockerfile
 ```
@@ -164,14 +171,14 @@ This brings up four services on one network:
 | Service | URL / port | Description |
 |---------|-----------|-------------|
 | `web` | http://localhost:4200 | Angular SPA (production build via nginx) |
-| `api` | http://localhost:8080 | FastAPI — KB/CRM/Sessions/RAG + gateway to Go; Swagger at `/docs` |
-| `attendance` | http://localhost:8090 | NYAMPE Go backend (auth + attendance) |
+| `attendance` | http://localhost:8080 | NYAMPE Go backend — public API gateway (auth + attendance + content CRUD) |
+| `ai` | (internal `:8081`) | FastAPI AI service — `/analyze` + RAG; not published by default |
 | `db` | localhost:3306 | MySQL 8, single `handayani` database |
 
 Then open **http://localhost:4200** and log in with a seeded account
 (see [seeded accounts](#authentication-roles--seeded-accounts), e.g. `admin` / `admin`).
 
-The FastAPI tables are initialised from `backend/schema.sql` + `backend/seed.sql` **only on the first
+The content tables are initialised from `backend/schema.sql` + `backend/seed.sql` **only on the first
 boot** (i.e. on an empty MySQL volume); the Go service auto-migrates and seeds its own tables on every
 start.
 
@@ -179,7 +186,7 @@ Common commands:
 
 ```bash
 docker compose up --build -d     # run detached
-docker compose logs -f api       # tail one service
+docker compose logs -f attendance  # tail one service (gateway); or `ai`, `db`, `web`
 docker compose down              # stop (keeps the db volume)
 docker compose down -v           # stop and wipe the database (re-seeds next up)
 ```
@@ -196,32 +203,34 @@ Run MySQL yourself, then start each app in its own terminal.
 ### 1. Database (MySQL 8)
 
 ```bash
-mysql -u root -p < backend/schema.sql   # creates the `handayani` DB + FastAPI tables
+mysql -u root -p < backend/schema.sql   # creates the `handayani` DB + content tables
 mysql -u root -p < backend/seed.sql     # seeds courses/mechanisms/CRM/sessions
 ```
-The Go service creates and seeds its own tables automatically on first run.
+The Go service creates and seeds its own tables automatically on first run. The content tables must
+exist before the Go gateway serves traffic, so load these first.
 
-### 2. FastAPI backend — `cd backend`
+### 2. Go gateway — `cd attendance-backend`
+
+```bash
+cp .env.example .env              # set DB_*, JWT_SECRET, AI_SERVICE_URL; PORT=8080
+go run .                          # or: go build -o server . && ./server
+```
+**Port 8080 is required** — the Angular `environment.ts` points there. `AI_SERVICE_URL` (default
+`http://localhost:8081`) is where the gateway proxies the analyze + RAG endpoints.
+
+### 3. FastAPI AI service — `cd backend`
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # Windows PowerShell
 # source .venv/bin/activate       # macOS / Linux
 pip install -r requirements.txt
-copy .env.example .env            # edit if your MySQL isn't root/no-password
-uvicorn app.main:app --reload --port 8080
+copy .env.example .env            # set DB_*, JWT_SECRET, GO_BACKEND_URL=http://localhost:8080
+uvicorn app.main:app --reload --port 8081
 ```
-**Port 8080 is required** — the Angular `environment.ts` points there. Swagger UI:
-http://localhost:8080/docs · health: `GET /api/health`.
-
-### 3. Go attendance backend — `cd attendance-backend`
-
-```bash
-cp .env.example .env              # set DB_* and (ideally) JWT_SECRET; PORT=8090
-go run .                          # or: go build -o server . && ./server
-```
-Set `PORT=8090` so it matches the gateway's default `GO_BACKEND_URL`. The Go and Python
-services **must share the same `JWT_SECRET`** (both default to `super-secret-key-default` in dev).
+Runs on **8081**, behind the Go gateway. The Go and Python services **must share the same
+`JWT_SECRET`** (both default to `super-secret-key-default` in dev). Swagger UI:
+http://localhost:8081/docs · health: `GET /api/health`.
 
 ### 4. Frontend — `cd frontend`
 
@@ -236,24 +245,28 @@ npm test                          # Karma + Jasmine unit tests (Chrome)
 
 ## Configuration & environment variables
 
-### FastAPI (`backend/.env`)
+### FastAPI AI service (`backend/.env`)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `DB_HOST` / `DB_PORT` | `127.0.0.1` / `3306` | MySQL host/port |
 | `DB_USER` / `DB_PASSWORD` / `DB_NAME` | `root` / *(empty)* / `handayani` | MySQL credentials & database |
-| `JWT_SECRET` | `super-secret-key-default` | **Must equal the Go service's secret** to validate tokens |
+| `JWT_SECRET` | `super-secret-key-default` | **Must equal the Go service's secret** to validate the forwarded token |
 | `GEMINI_API_KEY` | *(empty)* | Enables real Gemini analysis; blank → deterministic stub |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model id |
-| `GO_BACKEND_URL` | `http://localhost:8090` | Where the gateway proxies auth/attendance calls |
+| `GO_BACKEND_URL` | `http://localhost:8080` | Go gateway address; RAG fetches the instructor list from it |
+| `RAG_SERVICE_USERNAME` / `RAG_SERVICE_PASSWORD` | *(empty)* | Manager service account for the RAG instructor fetch; blank → omit that section |
 
-### Go service (`attendance-backend/.env`)
+Run uvicorn on `--port 8081` (the Go gateway is the front door on 8080).
+
+### Go gateway (`attendance-backend/.env`)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` | local MySQL | DB connection (point at the same `handayani` DB) |
-| `JWT_SECRET` | `super-secret-key-default` | Signs the JWT (share with FastAPI) |
-| `PORT` | `8090` | Listen port |
+| `JWT_SECRET` | `super-secret-key-default` | Signs the JWT (share with the AI service) |
+| `PORT` | `8080` | Listen port (the Angular `environment.ts` points here) |
+| `AI_SERVICE_URL` | `http://localhost:8081` | Where the gateway reverse-proxies the analyze + RAG endpoints |
 | `GIN_MODE` | `debug` | `release` in production |
 
 ### Frontend
@@ -267,14 +280,15 @@ into the production build; to host the API elsewhere, change it and rebuild the 
 
 Authentication is **real** (JWT), not a mock. Flow:
 
-1. The SPA `POST`s credentials to `/api/auth/login`; FastAPI's gateway forwards to the Go service's
-   `/api/login`.
+1. The SPA `POST`s credentials to `/api/auth/login`; the Go gateway serves it via its `/api/auth/*`
+   alias (rewritten to the native `/api/login`).
 2. The Go service verifies the bcrypt password hash and returns
    `{ token, role, full_name, username }`. With `remember_me: true` the token lasts 7 days, otherwise
    it uses the `session_duration_hours` system setting (default 24h).
 3. The SPA stores the token in `localStorage` and attaches `Authorization: Bearer <token>` to every
    request via an HTTP interceptor. A `401` clears the token and redirects to `/login`.
-4. FastAPI validates the token (`backend/app/auth.py`) on protected routes.
+4. The Go gateway validates the token (`auth/jwt.go`) on its protected routes; the AI service
+   re-validates the forwarded token (`backend/app/auth.py`) on `/api/sessions/{id}/analyze`.
 
 **Roles** (`employee` | `manager` | `instructor`). `manager` is the admin-equivalent/elevated role —
 there is no separate `admin` role. The legacy `isAdmin()` helper now just maps to `isManager()`.
@@ -299,7 +313,7 @@ Demo accounts created by the Go seeder on first boot (username / password):
 
 Base URL: `http://localhost:8080`. JSON is camelCase. Interactive docs at `/docs`.
 
-### Served directly by FastAPI
+### Served natively by the Go gateway
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
@@ -312,29 +326,22 @@ Base URL: `http://localhost:8080`. JSON is camelCase. Interactive docs at `/docs
 | `POST` / `PUT` / `DELETE` | `/api/crm/students[/{id}]` | manager | CRM CRUD |
 | `GET` | `/api/sessions` | any auth | List training sessions |
 | `POST` / `PUT` / `DELETE` | `/api/sessions[/{id}]` | manager | Session CRUD |
-| `POST` | `/api/sessions/{id}/analyze` | any auth | Run AI analysis on instructor notes |
-| `GET` | `/api/rag/knowledge-sync` | public | Whole KB flattened to `text/markdown` for the bot |
+| `POST` / `GET` | `/api/login` `/api/register`, `/api/auth/*` alias | public | Auth (issues the JWT) |
+| various | `/api/attendance/*` (alias), `/api/admin/*`, `/api/instructor/*` | role-gated | Attendance, manager & instructor tooling; `.xlsx` roster export |
 
 \* Course and mechanism writes are currently unauthenticated at the API layer; the dashboard gates
 them behind the manager role in the UI.
 
-### Proxied to the Go service (gateway)
+### Reverse-proxied to the FastAPI AI service
 
-FastAPI forwards these to the NYAMPE backend, passing the `Authorization`/`Content-Type`/`Accept`
-headers and the query string through. If the Go service is unreachable it returns `502` with
-`{"error": "Layanan absensi tidak tersedia"}`.
+The gateway forwards these unchanged to the internal AI service (`AI_SERVICE_URL`), preserving the
+`Authorization` header and request body. If that service is unreachable it returns `502` with
+`{"error": "AI service unavailable"}`.
 
-| Frontend prefix | Forwarded to | Examples |
-|-----------------|--------------|----------|
-| `/api/auth/*` | `/api/*` | `login`, `register` |
-| `/api/attendance/*` | `/api/*` | `clock-in`, `clock-out`, `leave`, `my-attendance/history`, … |
-| `/api/admin/*` | `/api/admin/*` | records, leaves, employees, offices, settings, students, learning-plans, instructor insight |
-| `/api/instructor/*` | `/api/instructor/*` | students, schedule, session start/end/active, quota presets |
-
-The Go service additionally exposes `POST /api/login` and `POST /api/register` publicly, and protects
-the rest with JWT + role middleware (`manager` for `/api/admin/*`, `instructor` for
-`/api/instructor/*`). It can also export a student roster as `.xlsx`
-(`GET /api/admin/students/roster.xlsx`).
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `POST` | `/api/sessions/{id}/analyze` | any auth | Run Gemini analysis on instructor notes; persists `ai_*` |
+| `GET` | `/api/rag/knowledge-sync[.json]` | public | Whole KB flattened to `text/markdown` (or JSON chunks) for the bot |
 
 ---
 
@@ -400,7 +407,8 @@ on an interval; there are **no webhooks** (per PRD §4.2).
 
 ## Data model
 
-**FastAPI-owned tables** (`backend/schema.sql`):
+**Content tables** (`backend/schema.sql`, shared — served by the Go gateway, also read by the AI
+service for RAG and `/analyze`):
 
 - `courses` — category, program type, specifics, duration, price, registration fee, remarks.
 - `mechanisms` — SIM requirement steps: requirement name, issuing body, cost, notes, sort order.
@@ -414,9 +422,8 @@ on an interval; there are **no webhooks** (per PRD §4.2).
 `learning_plans`. Attendance is geofenced — clock-ins record lat/long and are validated against an
 office location's allowed radius.
 
-> The instructor weekly schedule is stored **sparse**: only non-`Tersedia` slots are persisted, and
-> reads reconstruct the full 7-day × 3-timeslot matrix (`backend/app/schedule.py`). Booked slots hold
-> the student's name, so the public read masks them to *"Terisi"*.
+> The instructor weekly schedule (PRD Epic 3) is not currently served by either backend — the
+> Angular instructor views fall back to bundled mock data (see *Project status & known gaps*).
 
 ---
 
@@ -424,8 +431,8 @@ office location's allowed radius.
 
 - **Frontend:** `cd frontend && npm test` — Karma + Jasmine, specs live next to source as `*.spec.ts`.
   Run a single spec with `ng test --include='**/api.service.spec.ts'`.
-- **FastAPI:** `cd backend && pytest` — `respx` mocks the Go service to test the gateway's
-  prefix-rewriting, header/query passthrough, and the `502`-on-down behaviour (`tests/test_gateway.py`).
+- **FastAPI AI service:** no automated test suite at present (the former gateway proxy tests were
+  removed with the gateway).
 - **Go:** no automated test suite at present.
 
 ---
@@ -434,17 +441,19 @@ office location's allowed radius.
 
 This repo is under active development; a few things are mid-migration and worth knowing:
 
-- **Instructor schedule endpoints are not currently served by FastAPI.** The Angular `ApiService`
-  still calls `/api/instructors/schedule[/public]`, but no `instructors` router is registered in
-  `main.py` and `schema.sql` doesn't create `instructors`/`schedules` tables. Today the instructor
-  views fall back to bundled mock data via graceful degradation. `rag.py` and `schedule.py` still
-  reference those tables, so `/api/rag/knowledge-sync` will error against a fresh database until they
-  are reintroduced or the RAG query is updated.
+- **Instructor schedule endpoints (PRD Epic 3) are not served by either backend.** The Angular
+  `ApiService` still calls `/api/instructors/schedule[/public]`, but neither the Go gateway nor the
+  AI service serves them, so the instructor views fall back to bundled mock data via graceful
+  degradation. (RAG fetches its instructor data from the Go gateway's `/api/admin/instructors`, which
+  is unrelated to this missing schedule-matrix feature.)
+- **Course & mechanism writes are unauthenticated** at the API layer (preserved from the prior
+  FastAPI behaviour); the dashboard gates them behind the manager role in the UI. Consider gating the
+  write routes behind `ManagerMiddleware` (GET stays public) before any real deployment.
 - **Attendance/leave UI is partially wired.** Components exist under `frontend/src/app/dashboard/`
   (`absensi`, `cuti`, `riwayat-absensi`, `riwayat-cuti`, `kehadiran-tim`) and an `attendance.service`
   consumes the Go endpoints, but they are not yet added to `app.routes.ts`/the sidebar.
-- **Dev secrets are committed for convenience** (default `JWT_SECRET`, seeded passwords, open CORS
-  `*` on FastAPI). Lock these down before any real deployment.
+- **Dev secrets are committed for convenience** (default `JWT_SECRET`, seeded passwords). Lock these
+  down before any real deployment.
 
 ---
 
