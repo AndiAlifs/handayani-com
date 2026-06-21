@@ -191,6 +191,9 @@ func main() {
 	r.GET("/api/rag/knowledge-sync", handlers.ProxyToAI)
 	r.GET("/api/rag/knowledge-sync.json", handlers.ProxyToAI)
 
+	// Payroll — manager-gated master data + runs (internal payroll module).
+	handlers.RegisterPayrollRoutes(r)
+
 	// Front-door prefix aliases: the SPA calls /api/auth/* and /api/attendance/*,
 	// which the old FastAPI gateway rewrote to this service's native /api/* routes.
 	// (/api/admin/* and /api/instructor/* are served natively, so need no alias.)
