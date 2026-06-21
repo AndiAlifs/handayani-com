@@ -491,6 +491,17 @@ func SeedInstructors() {
 		password string
 	}{
 		{"instructor1", "Instruktur Utama", "instructor1"},
+		// Named roster — kept consistent with the FastAPI sessions seed
+		// (backend/seed.sql) so instructor names line up across both backends.
+		// Predictable credentials: password == username.
+		{"instruktur_bambang", "Bambang Wijaya", "instruktur_bambang"},
+		{"instruktur_sari", "Sari Lestari", "instruktur_sari"},
+		{"instruktur_joko", "Joko Susanto", "instruktur_joko"},
+		{"instruktur_dewi", "Dewi Anggraini", "instruktur_dewi"},
+		{"instruktur_agus", "Agus Setiawan", "instruktur_agus"},
+		{"instruktur_maya", "Maya Puspita", "instruktur_maya"},
+		{"instruktur_hendra", "Hendra Gunawan", "instruktur_hendra"},
+		{"instruktur_ratna", "Ratna Sari", "instruktur_ratna"},
 	}
 
 	for _, instructor := range instructors {
@@ -526,32 +537,104 @@ func SeedInstructors() {
 	}
 }
 
-// SeedInstructorStudentsAndPlans creates sample students, learning plans, and session data for instructor users.
-func SeedInstructorStudentsAndPlans() {
-	var instructor models.User
-	if err := database.DB.Where("username = ? AND role = ?", "instructor1", "instructor").First(&instructor).Error; err != nil {
-		log.Println("Instructor user 'instructor1' not found, skipping instructor student/plan seed")
-		return
-	}
+// instructorStudentSeed describes one sample learner belonging to an instructor.
+type instructorStudentSeed struct {
+	name         string
+	quota        float64
+	whatsapp     string
+	gender       string
+	meetingPoint string
+}
 
-	studentSeeds := []struct {
-		name         string
-		quota        float64
-		whatsapp     string
-		gender       string
-		meetingPoint string
-	}{
+// instructorStudentPools maps an instructor username to its sample learners.
+// Names mirror the FastAPI CRM seed (backend/seed.sql) where possible so the two
+// backends refer to the same people. New instructors get 4 learners each.
+var instructorStudentPools = map[string][]instructorStudentSeed{
+	"instructor1": {
 		{"Aulia Rahman", 24, "081234567890", "male", "Kampus B"},
 		{"Nadia Putri", 16, "081234567891", "female", "Lapangan MTQ"},
 		{"Rizky Pratama", 20, "081234567892", "male", ""},
+	},
+	"instruktur_bambang": {
+		{"Andi Setiawan", 20, "081234560001", "male", "Kampus A"},
+		{"Tia Lestari", 16, "081234560005", "female", "Kampus B"},
+		{"Fajar Nugroho", 20, "081234560011", "male", "Lapangan MTQ"},
+		{"Hadi Wijaya", 24, "081234560015", "male", "Kampus A"},
+	},
+	"instruktur_sari": {
+		{"Rina Marlina", 16, "081234560002", "female", "Kampus B"},
+		{"Siti Nurhaliza", 20, "081234560008", "female", "Kampus A"},
+		{"Lina Marlina", 24, "081234560014", "female", "Lapangan MTQ"},
+		{"Nina Kartika", 16, "081234560020", "female", "Kampus B"},
+	},
+	"instruktur_joko": {
+		{"Rahmat Hidayat", 20, "081234560007", "male", "Kantor Kendari"},
+		{"Bayu Aji", 24, "081234560017", "male", "Lapangan MTQ"},
+		{"Dimas Saputra", 16, "081234560201", "male", "Kampus A"},
+		{"Nurul Aini", 20, "081234560202", "female", "Kampus B"},
+	},
+	"instruktur_dewi": {
+		{"Eko Prabowo", 20, "081234560009", "male", "Kampus A"},
+		{"Rini Astuti", 16, "081234560203", "female", "Kampus B"},
+		{"Yusuf Maulana", 24, "081234560204", "male", "Lapangan MTQ"},
+		{"Sari Indah", 20, "081234560205", "female", "Kantor Kendari"},
+	},
+	"instruktur_agus": {
+		{"Arif Rahman", 24, "081234560019", "male", "Kantor Kendari"},
+		{"Lukman Hakim", 20, "081234560206", "male", "Kampus A"},
+		{"Ayu Wandira", 16, "081234560207", "female", "Kampus B"},
+		{"Hendra Saputra", 24, "081234560208", "male", "Lapangan MTQ"},
+	},
+	"instruktur_maya": {
+		{"Maya Sari", 20, "081234560010", "female", "Kampus B"},
+		{"Budi Kurniawan", 16, "081234560004", "male", "Kampus A"},
+		{"Sinta Bella", 20, "081234560209", "female", "Lapangan MTQ"},
+		{"Rudi Hartono", 24, "081234560210", "male", "Kantor Kendari"},
+	},
+	"instruktur_hendra": {
+		{"Indah Permata", 20, "081234560012", "female", "Kampus A"},
+		{"Wawan Setiabudi", 24, "081234560021", "male", "Kampus B"},
+		{"Doni Firmansyah", 16, "081234560211", "male", "Lapangan MTQ"},
+		{"Mega Lestari", 20, "081234560212", "female", "Kampus A"},
+	},
+	"instruktur_ratna": {
+		{"Putri Ayu", 16, "081234560016", "female", "Kampus B"},
+		{"Wati Susanti", 20, "081234560213", "female", "Kampus A"},
+		{"Fina Aprilia", 24, "081234560214", "female", "Lapangan MTQ"},
+		{"Bagas Pratama", 20, "081234560215", "male", "Kantor Kendari"},
+	},
+}
+
+// SeedInstructorStudentsAndPlans creates sample students, learning plans, and
+// session data for every instructor user.
+func SeedInstructorStudentsAndPlans() {
+	var instructors []models.User
+	if err := database.DB.Where("role = ?", "instructor").Find(&instructors).Error; err != nil {
+		log.Printf("Failed to load instructors, skipping student/plan seed: %v", err)
+		return
+	}
+	if len(instructors) == 0 {
+		log.Println("No instructor users found, skipping instructor student/plan seed")
+		return
+	}
+	for _, instructor := range instructors {
+		seedStudentsPlansForInstructor(instructor)
+	}
+}
+
+func seedStudentsPlansForInstructor(instructor models.User) {
+	studentSeeds, ok := instructorStudentPools[instructor.Username]
+	if !ok {
+		log.Printf("No student pool defined for instructor '%s', skipping", instructor.Username)
+		return
 	}
 
-	studentByName := make(map[string]models.Student)
+	orderedStudents := make([]models.Student, 0, len(studentSeeds))
 	for _, s := range studentSeeds {
 		var student models.Student
 		err := database.DB.Where("instructor_id = ? AND name = ?", instructor.ID, s.name).First(&student).Error
 		if err == nil {
-			studentByName[s.name] = student
+			orderedStudents = append(orderedStudents, student)
 			log.Printf("Student '%s' already exists for instructor '%s', skipping", s.name, instructor.Username)
 			continue
 		}
@@ -572,42 +655,28 @@ func SeedInstructorStudentsAndPlans() {
 			continue
 		}
 
-		studentByName[s.name] = student
+		orderedStudents = append(orderedStudents, student)
 		log.Printf("✓ Student '%s' created for instructor '%s'", s.name, instructor.Username)
 	}
 
-	var existingStudents []models.Student
-	if err := database.DB.Where("instructor_id = ?", instructor.ID).Find(&existingStudents).Error; err == nil {
-		for _, st := range existingStudents {
-			studentByName[st.Name] = st
-		}
-	}
-
-	if len(studentByName) == 0 {
-		log.Printf("No students found for instructor '%s', skipping learning plan seed", instructor.Username)
+	if len(orderedStudents) == 0 {
+		log.Printf("No students available for instructor '%s', skipping learning plan seed", instructor.Username)
 		return
 	}
 
 	today := time.Now()
-	plans := []struct {
-		studentName string
-		date        time.Time
-		startTime   string
-		endTime     string
-		status      string
-	}{
-		{"Aulia Rahman", today.AddDate(0, 0, 1), "09:00", "11:00", "planned"},
-		{"Nadia Putri", today.AddDate(0, 0, 2), "13:00", "15:00", "planned"},
-		{"Rizky Pratama", today.AddDate(0, 0, -1), "08:30", "10:00", "completed"},
-	}
-
-	for _, p := range plans {
-		student, ok := studentByName[p.studentName]
-		if !ok {
-			continue
+	// One learning plan per student: alternate upcoming (planned) and past (completed).
+	for i, student := range orderedStudents {
+		var date time.Time
+		var startTime, endTime, status string
+		if i%2 == 0 {
+			date = today.AddDate(0, 0, i+1)
+			startTime, endTime, status = "09:00", "11:00", "planned"
+		} else {
+			date = today.AddDate(0, 0, -i)
+			startTime, endTime, status = "13:00", "15:00", "completed"
 		}
-
-		scheduledDate := time.Date(p.date.Year(), p.date.Month(), p.date.Day(), 0, 0, 0, 0, p.date.Location())
+		scheduledDate := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 
 		var existingPlan models.LearningPlan
 		err := database.DB.Where(
@@ -615,11 +684,11 @@ func SeedInstructorStudentsAndPlans() {
 			instructor.ID,
 			student.ID,
 			scheduledDate,
-			p.startTime,
-			p.endTime,
+			startTime,
+			endTime,
 		).First(&existingPlan).Error
 		if err == nil {
-			log.Printf("Learning plan for '%s' on %s already exists, skipping", p.studentName, scheduledDate.Format("2006-01-02"))
+			log.Printf("Learning plan for '%s' on %s already exists, skipping", student.Name, scheduledDate.Format("2006-01-02"))
 			continue
 		}
 
@@ -627,31 +696,32 @@ func SeedInstructorStudentsAndPlans() {
 			InstructorID:  instructor.ID,
 			StudentID:     student.ID,
 			ScheduledDate: scheduledDate,
-			StartTime:     p.startTime,
-			EndTime:       p.endTime,
-			Status:        p.status,
+			StartTime:     startTime,
+			EndTime:       endTime,
+			Status:        status,
 		}
 
 		if err := database.DB.Create(&plan).Error; err != nil {
-			log.Printf("Failed to create learning plan for '%s': %v", p.studentName, err)
+			log.Printf("Failed to create learning plan for '%s': %v", student.Name, err)
 			continue
 		}
 
-		log.Printf("✓ Learning plan created for '%s' (%s %s-%s)", p.studentName, scheduledDate.Format("2006-01-02"), p.startTime, p.endTime)
+		log.Printf("✓ Learning plan created for '%s' (%s %s-%s)", student.Name, scheduledDate.Format("2006-01-02"), startTime, endTime)
 	}
 
-	seedInstructorSampleSessions(instructor, studentByName)
+	seedInstructorSampleSessions(instructor, orderedStudents)
 }
 
-func seedInstructorSampleSessions(instructor models.User, studentByName map[string]models.Student) {
-	sampleStudent, ok := studentByName["Aulia Rahman"]
-	if !ok {
+func seedInstructorSampleSessions(instructor models.User, students []models.Student) {
+	if len(students) == 0 {
 		return
 	}
 
+	// Completed (checked-out) session for the first student.
+	completedStudent := students[0]
 	var existingCompleted int64
 	database.DB.Model(&models.StudentSession{}).
-		Where("instructor_id = ? AND student_id = ? AND check_out_time IS NOT NULL", instructor.ID, sampleStudent.ID).
+		Where("instructor_id = ? AND student_id = ? AND check_out_time IS NOT NULL", instructor.ID, completedStudent.ID).
 		Count(&existingCompleted)
 
 	if existingCompleted == 0 {
@@ -660,7 +730,7 @@ func seedInstructorSampleSessions(instructor models.User, studentByName map[stri
 		deducted := checkOut.Sub(checkIn).Hours()
 
 		session := models.StudentSession{
-			StudentID:     sampleStudent.ID,
+			StudentID:     completedStudent.ID,
 			InstructorID:  instructor.ID,
 			CheckInTime:   checkIn,
 			CheckOutTime:  &checkOut,
@@ -673,25 +743,26 @@ func seedInstructorSampleSessions(instructor models.User, studentByName map[stri
 			log.Printf("Failed to create completed sample session: %v", err)
 		} else {
 			// Keep quota realistic if session was newly seeded.
-			if sampleStudent.RemainingQuotaHours >= deducted {
-				sampleStudent.RemainingQuotaHours -= deducted
-				_ = database.DB.Save(&sampleStudent).Error
+			if completedStudent.RemainingQuotaHours >= deducted {
+				completedStudent.RemainingQuotaHours -= deducted
+				_ = database.DB.Save(&completedStudent).Error
 			}
-			log.Printf("✓ Completed sample student session created for '%s'", sampleStudent.Name)
+			log.Printf("✓ Completed sample student session created for '%s'", completedStudent.Name)
 		}
 	}
 
+	if len(students) < 2 {
+		return
+	}
+
+	// Active (not yet checked out) session for the second student.
+	activeStudent := students[1]
 	var existingActive int64
 	database.DB.Model(&models.StudentSession{}).
 		Where("instructor_id = ? AND check_out_time IS NULL", instructor.ID).
 		Count(&existingActive)
 
 	if existingActive == 0 {
-		activeStudent, found := studentByName["Nadia Putri"]
-		if !found {
-			return
-		}
-
 		activeSession := models.StudentSession{
 			StudentID:    activeStudent.ID,
 			InstructorID: instructor.ID,
