@@ -44,6 +44,9 @@ Thumbs.db
 # Antigravity CLI
 .antigravitycli/
 
+# Temporary clones / worktrees
+.clone/
+
 # Sensitive files / Secrets / API keys
 .env
 .env.local
