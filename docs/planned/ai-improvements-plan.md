@@ -1,5 +1,7 @@
 # AI / RAG Improvements Roadmap
 
+**Date:** 2026-06-21 · **Status:** In Progress · **Owner:** Andi Alifsyah
+
 This document tracks a sequenced set of AI and observability improvements to the FastAPI
 backend. The work turns four high-value capabilities into a dependency-aware roadmap. Each step
 ships and demos independently.
@@ -29,7 +31,7 @@ ships and demos independently.
 - **Step 3 frontend:** include the Angular dashboard card.
 - **Step 3 scheduling:** APScheduler in-process nightly job + a manual `POST /run` endpoint.
 
-## Step 1 — Source citations in RAG (≈ ½ day)
+## Step 1 — Source citations in RAG (≈ ½ day) · **Status: Executed** ✅
 
 - File: `backend/app/routers/rag.py`.
 - Tag each rendered KB chunk with a stable source ID from the DB row, e.g. `[#kursus-3]`,
@@ -40,14 +42,14 @@ ships and demos independently.
 - Optional: `GET /api/rag/knowledge-sync.json` returning structured chunks
   `[{sourceId, type, title, body, updatedAt}]` for easier bot citation.
 
-## Step 2 — Langfuse tracing on the existing call (1–2 hrs)
+## Step 2 — Langfuse tracing on the existing call (1–2 hrs) · **Status: Planned** 🔲
 
 - Add `langfuse` to `backend/requirements.txt`; add `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` /
   `LANGFUSE_HOST` to `backend/.env.example` and `compose.yml`.
 - Wrap the Gemini call in `backend/app/ai.py` in a Langfuse span (prompt, model, output, latency,
   token usage). No-op cleanly when keys are absent, mirroring the existing stub pattern.
 
-## Step 3 — Overnight multi-agent CRM-insights workflow (2–3 days)
+## Step 3 — Overnight multi-agent CRM-insights workflow (2–3 days) · **Status: Planned** 🔲
 
 - New module `backend/app/agents/crm_insights.py`: three Gemini calls —
   - **Planner:** reads aggregate stats over `students_crm` + `sessions` → decides report focus.
@@ -62,7 +64,7 @@ ships and demos independently.
 - Frontend: "Laporan Mingguan AI" card on the CRM dashboard + "Generate sekarang" button, with mock
   fallback per the `ApiService` pattern.
 
-## Step 4 — Thin Telegram bot over RAG (optional, ~1 day)
+## Step 4 — Thin Telegram bot over RAG (optional, ~1 day) · **Status: Planned** 🔲
 
 - Standalone service/poller that calls `knowledge-sync` (citation-aware after Step 1) → Gemini →
   replies with source links. Separate service in `compose.yml`; not entangled with the API.
