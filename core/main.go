@@ -34,6 +34,10 @@ func main() {
 		&models.Student{},
 		&models.StudentSession{},
 		&models.LearningPlan{},
+		&models.EmployeeProfile{},
+		&models.EmployeeCompensation{},
+		&models.PayComponent{},
+		&models.EmployeeComponent{},
 	)
 
 	// Seed database with initial data
