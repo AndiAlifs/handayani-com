@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Knowledge Base web app for YPA Handayani (a driving/skills course provider). A public Angular landing page plus an authenticated dashboard, backed by two services over a shared MySQL database. The work is organized around PRD Epics 2–5 (see `docs/prd.md`, `docs/wbs.md`); endpoints and components reference these epics in comments.
+Knowledge Base web app for YPA Handayani (a driving/skills course provider). A public Angular landing page plus an authenticated dashboard, backed by two services over a shared MySQL database. The work is organized around PRD Epics 2–5 (see `docs/archived/prd.md`, `docs/archived/wbs.md`); endpoints and components reference these epics in comments.
 
 The repo is split into three apps:
 

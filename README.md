@@ -9,8 +9,8 @@ Mandarin). It combines:
 - an **authenticated dashboard** where managers and instructors run the course catalog, CRM,
   training sessions (with AI note analysis), and field attendance.
 
-The system is built around the PRD in [`docs/prd.md`](docs/prd.md) (Epics 2–5) and the work
-breakdown in [`docs/wbs.md`](docs/wbs.md). Many endpoints and components reference these epics in
+The system is built around the PRD in [`docs/archived/prd.md`](docs/archived/prd.md) (Epics 2–5) and the work
+breakdown in [`docs/archived/wbs.md`](docs/archived/wbs.md). Many endpoints and components reference these epics in
 their comments.
 
 ---
@@ -121,8 +121,14 @@ Key design decisions:
 ├── DOCKER.md                # Docker usage notes
 ├── CLAUDE.md                # contributor/agent guidance for this repo
 ├── docs/
-│   ├── prd.md               # product requirements (Epics 2–5)
-│   └── wbs.md               # work breakdown structure
+│   ├── planned/             # future work — specs & roadmaps
+│   │   ├── ai-improvements-plan.md
+│   │   └── payroll-module-design.md
+│   ├── archived/            # completed / historical docs
+│   │   ├── prd.md           # product requirements (Epics 2–5)
+│   │   └── wbs.md           # work breakdown structure
+│   └── reference/           # active operational docs
+│       └── seed-credentials.md
 │
 ├── frontend/                # Angular 18 SPA
 │   ├── src/app/
@@ -459,8 +465,11 @@ This repo is under active development; a few things are mid-migration and worth 
 
 ## Further documentation
 
-- [`docs/prd.md`](docs/prd.md) — product requirements (vision, personas, Epics 2–5).
-- [`docs/wbs.md`](docs/wbs.md) — work breakdown structure.
+- [`docs/archived/prd.md`](docs/archived/prd.md) — product requirements (vision, personas, Epics 2–5).
+- [`docs/archived/wbs.md`](docs/archived/wbs.md) — work breakdown structure.
+- [`docs/planned/ai-improvements-plan.md`](docs/planned/ai-improvements-plan.md) — AI/RAG improvements roadmap.
+- [`docs/planned/payroll-module-design.md`](docs/planned/payroll-module-design.md) — payroll module design spec.
+- [`docs/reference/seed-credentials.md`](docs/reference/seed-credentials.md) — seeded accounts & data reference.
 - [`DOCKER.md`](DOCKER.md) — running the full stack with Docker.
 - [`CLAUDE.md`](CLAUDE.md) — contributor/agent guidance and architectural invariants.
 </content>
