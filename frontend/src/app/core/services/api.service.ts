@@ -7,12 +7,15 @@ import { Instructor, ScheduleSlot } from '../models/instructor.model';
 import { Mechanism } from '../models/mechanism.model';
 import { StudentCrm } from '../models/student-crm.model';
 import { Session } from '../models/session.model';
+import { WhatsAppStatus, WhatsAppMessage } from '../models/whatsapp.model';
 import {
   MOCK_COURSES,
   MOCK_INSTRUCTORS,
   MOCK_MECHANISMS,
   MOCK_STUDENTS_CRM,
-  MOCK_SESSIONS
+  MOCK_SESSIONS,
+  MOCK_WHATSAPP_STATUS,
+  MOCK_WHATSAPP_MESSAGES
 } from './mock-data';
 import { environment } from '../../../environments/environment';
 
@@ -168,6 +171,56 @@ export class ApiService {
   analyzeSession(session: Session, rawNotes: string): Observable<Session> {
     return this.http.post<Session>(`${this.baseUrl}/api/sessions/${session.id}/analyze`, { rawNotes }).pipe(
       catchError(() => of(this.mockAnalyze(session, rawNotes)))
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // WHATSAPP (WAHA) — manager-only admin
+  // ──────────────────────────────────────────
+  getWhatsAppStatus(): Observable<WhatsAppStatus> {
+    return this.http.get<WhatsAppStatus>(`${this.baseUrl}/api/admin/whatsapp/status`).pipe(
+      catchError(() => of(MOCK_WHATSAPP_STATUS))
+    );
+  }
+
+  startWhatsApp(): Observable<WhatsAppStatus> {
+    return this.http.post<WhatsAppStatus>(`${this.baseUrl}/api/admin/whatsapp/start`, {}).pipe(
+      catchError(() => of(MOCK_WHATSAPP_STATUS))
+    );
+  }
+
+  stopWhatsApp(): Observable<WhatsAppStatus> {
+    return this.http.post<WhatsAppStatus>(`${this.baseUrl}/api/admin/whatsapp/stop`, {}).pipe(
+      catchError(() => of(MOCK_WHATSAPP_STATUS))
+    );
+  }
+
+  restartWhatsApp(): Observable<WhatsAppStatus> {
+    return this.http.post<WhatsAppStatus>(`${this.baseUrl}/api/admin/whatsapp/restart`, {}).pipe(
+      catchError(() => of(MOCK_WHATSAPP_STATUS))
+    );
+  }
+
+  logoutWhatsApp(): Observable<WhatsAppStatus> {
+    return this.http.post<WhatsAppStatus>(`${this.baseUrl}/api/admin/whatsapp/logout`, {}).pipe(
+      catchError(() => of(MOCK_WHATSAPP_STATUS))
+    );
+  }
+
+  /** QR image for pairing. Binary — no mock fallback (the UI hides it when offline). */
+  getWhatsAppQR(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/api/admin/whatsapp/qr`, { responseType: 'blob' });
+  }
+
+  sendTestMessage(phone: string, text: string): Observable<WhatsAppMessage | null> {
+    return this.http.post<WhatsAppMessage>(`${this.baseUrl}/api/admin/whatsapp/send-test`, { phone, text }).pipe(
+      catchError(() => of(null))
+    );
+  }
+
+  getMessageLog(): Observable<WhatsAppMessage[]> {
+    return this.http.get<WhatsAppMessage[]>(`${this.baseUrl}/api/admin/whatsapp/messages`).pipe(
+      catchError(() => of(MOCK_WHATSAPP_MESSAGES))
     );
   }
 

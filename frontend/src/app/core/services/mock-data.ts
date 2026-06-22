@@ -3,8 +3,23 @@ import { Instructor, ScheduleSlot } from '../models/instructor.model';
 import { Mechanism } from '../models/mechanism.model';
 import { StudentCrm } from '../models/student-crm.model';
 import { Session, AiAnalysis } from '../models/session.model';
+import { WhatsAppStatus, WhatsAppMessage } from '../models/whatsapp.model';
 
 export type { Course, Instructor, ScheduleSlot, Mechanism, StudentCrm, Session, AiAnalysis };
+export type { WhatsAppStatus, WhatsAppMessage };
+
+// ──────────────────────────────────────────
+// WHATSAPP (WAHA) — offline fallbacks
+// ──────────────────────────────────────────
+export const MOCK_WHATSAPP_STATUS: WhatsAppStatus = {
+  sessionName: 'default',
+  status: 'STOPPED',
+  phoneNumber: '',
+  pairedAt: null,
+  lastSyncedAt: new Date().toISOString(),
+};
+
+export const MOCK_WHATSAPP_MESSAGES: WhatsAppMessage[] = [];
 
 // ──────────────────────────────────────────
 // COURSES
