@@ -9,6 +9,7 @@ import (
 	"handayani-core/handlers"
 	"handayani-core/models"
 	"handayani-core/seed"
+	"handayani-core/waha"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -207,6 +208,22 @@ func main() {
 
 	// Payroll — manager-gated master data + runs (internal payroll module).
 	handlers.RegisterPayrollRoutes(r)
+
+	// WhatsApp (WAHA) — public HMAC-validated webhook + manager-only admin.
+	handlers.WAClient = waha.New(waha.LoadConfig())
+	r.POST("/api/webhooks/whatsapp", handlers.WAWebhook)
+	wa := r.Group("/api/admin/whatsapp")
+	wa.Use(auth.AuthMiddleware(), auth.ManagerMiddleware())
+	{
+		wa.GET("/status", handlers.GetWhatsAppStatus)
+		wa.POST("/start", handlers.StartWhatsApp)
+		wa.POST("/stop", handlers.StopWhatsApp)
+		wa.POST("/restart", handlers.RestartWhatsApp)
+		wa.POST("/logout", handlers.LogoutWhatsApp)
+		wa.GET("/qr", handlers.GetWhatsAppQR)
+		wa.POST("/send-test", handlers.SendTestMessage)
+		wa.GET("/messages", handlers.GetMessageLog)
+	}
 
 	// Front-door prefix aliases: the SPA calls /api/auth/* and /api/attendance/*,
 	// which the old FastAPI gateway rewrote to this service's native /api/* routes.
