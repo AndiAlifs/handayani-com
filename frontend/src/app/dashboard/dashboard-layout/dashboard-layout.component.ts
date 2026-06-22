@@ -29,6 +29,7 @@ export class DashboardLayoutComponent {
     { label: 'Mekanisme SIM', icon: 'sim', route: '/dashboard/mekanisme', roles: ['manager'] },
     { label: 'CRM Siswa', icon: 'crm', route: '/dashboard/crm', roles: ['manager'] },
     { label: 'Sesi Pelatihan', icon: 'sessions', route: '/dashboard/sesi', roles: ['manager', 'instructor'] },
+    { label: 'WhatsApp', icon: 'whatsapp', route: '/dashboard/whatsapp', roles: ['manager'] },
   ];
 
   get visibleNavItems(): NavItem[] {

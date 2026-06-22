@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { LandingPageComponent } from './landing-page/landing-page.component';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -19,23 +20,37 @@ export const routes: Routes = [
       },
       {
         path: 'kursus',
+        canActivate: [roleGuard],
+        data: { roles: ['manager'] },
         loadComponent: () => import('./dashboard/kursus/kursus.component').then(m => m.KursusComponent)
       },
       {
         path: 'instruktur',
+        canActivate: [roleGuard],
+        data: { roles: ['manager'] },
         loadComponent: () => import('./dashboard/instruktur/instruktur.component').then(m => m.InstrukturComponent)
       },
       {
         path: 'mekanisme',
+        canActivate: [roleGuard],
+        data: { roles: ['manager'] },
         loadComponent: () => import('./dashboard/mekanisme/mekanisme.component').then(m => m.MekanismeComponent)
       },
       {
         path: 'crm',
+        canActivate: [roleGuard],
+        data: { roles: ['manager'] },
         loadComponent: () => import('./dashboard/crm/crm.component').then(m => m.CrmComponent)
       },
       {
         path: 'sesi',
         loadComponent: () => import('./dashboard/sesi/sesi.component').then(m => m.SesiComponent)
+      },
+      {
+        path: 'whatsapp',
+        canActivate: [roleGuard],
+        data: { roles: ['manager'] },
+        loadComponent: () => import('./dashboard/whatsapp/whatsapp.component').then(m => m.WhatsappComponent)
       }
     ]
   },

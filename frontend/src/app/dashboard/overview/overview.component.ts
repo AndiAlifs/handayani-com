@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { StudentCrm } from '../../core/models/student-crm.model';
 import { Session } from '../../core/models/session.model';
@@ -25,13 +26,14 @@ export class OverviewComponent implements OnInit {
   constructor(private api: ApiService) {}
 
   ngOnInit() {
-    this.api.getStudentsCrm().subscribe(data => {
-      this.students = data;
-      this.calculateStats();
-    });
-
-    this.api.getSessions().subscribe(data => {
-      this.sessions = data;
+    // Wait for both reads before computing, so stats are never derived against a
+    // half-loaded view (which briefly showed wrong counts when one resolved first).
+    forkJoin({
+      students: this.api.getStudentsCrm(),
+      sessions: this.api.getSessions(),
+    }).subscribe(({ students, sessions }) => {
+      this.students = students;
+      this.sessions = sessions;
       this.calculateStats();
     });
   }
