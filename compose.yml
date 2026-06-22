@@ -86,6 +86,30 @@ services:
       db:
         condition: service_healthy
 
+  # WhatsApp gateway. On this machine the Go/FastAPI/Angular apps run on the HOST,
+  # not in compose — so bring up just the infra: `docker compose up db waha`.
+  # Go reaches WAHA at http://localhost:3000 (published below); WAHA reaches the
+  # host-side gateway webhook via host.docker.internal.
+  waha:
+    image: devlikeapro/waha:latest
+    environment:
+      WHATSAPP_DEFAULT_ENGINE: WEBJS
+      WAHA_DASHBOARD_ENABLED: "true"
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:-admin}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:-admin}
+      WAHA_API_KEY: ${WAHA_API_KEY:-}
+      WHATSAPP_HOOK_URL: http://host.docker.internal:8080/api/webhooks/whatsapp
+      WHATSAPP_HOOK_EVENTS: "message,message.ack,session.status"
+      WHATSAPP_HOOK_HMAC_KEY: ${WAHA_HMAC_KEY:-waha-hmac-secret}
+    ports:
+      # Required: the host-side Go gateway calls WAHA's REST API here.
+      - "3000:3000"
+    volumes:
+      - waha-data:/app/.sessions
+    extra_hosts:
+      # Auto on Docker Desktop (Windows/macOS); explicit for native Linux.
+      - "host.docker.internal:host-gateway"
+
   web:
     build: ./frontend
     ports:
@@ -95,3 +119,4 @@ services:
 
 volumes:
   db-data:
+  waha-data:
