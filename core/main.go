@@ -38,6 +38,11 @@ func main() {
 		&models.EmployeeCompensation{},
 		&models.PayComponent{},
 		&models.EmployeeComponent{},
+		&models.WhatsAppSession{},
+		&models.WhatsAppMessageLog{},
+		&models.ChatbotConversation{},
+		&models.ChatbotMessage{},
+		&models.NotificationSchedule{},
 	)
 
 	// Seed database with initial data
@@ -153,17 +158,26 @@ func main() {
 	// above does not force auth onto them.
 	r.GET("/api/health", handlers.Health)
 
-	// Courses & mechanisms — public (preserves prior FastAPI behaviour; writes
-	// are unauthenticated, a pre-existing gap tracked as a follow-up).
+	// Courses & mechanisms — GET is public (the landing page reads them); writes
+	// are manager-only, matching the CRM/sessions groups below.
 	r.GET("/api/courses", handlers.ListCourses)
-	r.POST("/api/courses", handlers.CreateCourse)
-	r.PUT("/api/courses/:id", handlers.UpdateCourse)
-	r.DELETE("/api/courses/:id", handlers.DeleteCourse)
-
 	r.GET("/api/mechanisms", handlers.ListMechanisms)
-	r.POST("/api/mechanisms", handlers.CreateMechanism)
-	r.PUT("/api/mechanisms/:id", handlers.UpdateMechanism)
-	r.DELETE("/api/mechanisms/:id", handlers.DeleteMechanism)
+
+	courses := r.Group("/api/courses")
+	courses.Use(auth.AuthMiddleware(), auth.ManagerMiddleware())
+	{
+		courses.POST("", handlers.CreateCourse)
+		courses.PUT("/:id", handlers.UpdateCourse)
+		courses.DELETE("/:id", handlers.DeleteCourse)
+	}
+
+	mechanisms := r.Group("/api/mechanisms")
+	mechanisms.Use(auth.AuthMiddleware(), auth.ManagerMiddleware())
+	{
+		mechanisms.POST("", handlers.CreateMechanism)
+		mechanisms.PUT("/:id", handlers.UpdateMechanism)
+		mechanisms.DELETE("/:id", handlers.DeleteMechanism)
+	}
 
 	// CRM students — manager-only.
 	crm := r.Group("/api/crm/students")

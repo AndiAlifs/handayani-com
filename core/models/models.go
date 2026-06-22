@@ -13,6 +13,7 @@ type User struct {
 	Role             string    `gorm:"type:enum('employee','manager','instructor');default:'employee'" json:"role"`
 	OfficeID         *uint     `json:"office_id,omitempty"` // Employee's primary office
 	IsSuperAdmin     bool      `gorm:"default:false" json:"is_super_admin"`
+	WhatsApp         string    `gorm:"type:varchar(24)" json:"whatsapp"`      // nullable; instructor notifications (WhatsApp module)
 	MinimumWorkHours float64   `gorm:"default:8.0" json:"minimum_work_hours"` // Manager specific setting
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
