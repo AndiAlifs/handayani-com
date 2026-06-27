@@ -1,21 +1,34 @@
 package auth
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte(os.Getenv("JWT_SECRET"))
+const defaultDevSecret = "super-secret-key-default"
 
-func init() {
-	if len(secretKey) == 0 {
-		secretKey = []byte("super-secret-key-default") // Fallback for dev
+var warnSecretOnce sync.Once
+
+// secret resolves the JWT signing key lazily on every token operation. Reading
+// it here (rather than at package-init) ensures main()'s godotenv.Load() has
+// already populated the environment — a package-level var would be evaluated
+// before main() runs and miss a JWT_SECRET supplied only via .env.
+func secret() []byte {
+	if s := os.Getenv("JWT_SECRET"); s != "" {
+		return []byte(s)
 	}
+	warnSecretOnce.Do(func() {
+		log.Println("WARNING: JWT_SECRET is not set; using the insecure dev default. Set JWT_SECRET in production.")
+	})
+	return []byte(defaultDevSecret)
 }
 
 type Claims struct {
@@ -39,7 +52,7 @@ func GenerateToken(userID uint, role string, durationHours int) (string, error) 
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secretKey)
+	return token.SignedString(secret())
 }
 
 // AuthMiddleware protects routes
@@ -56,7 +69,10 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims := &Claims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return secretKey, nil
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return secret(), nil
 		})
 
 		if err != nil || !token.Valid {

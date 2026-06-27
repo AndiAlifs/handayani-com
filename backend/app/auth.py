@@ -31,11 +31,14 @@ def _secret() -> str:
 def decode_token(token: str) -> "TokenUser":
     try:
         payload = jwt.decode(token, _secret(), algorithms=[_ALGORITHM])
-    except jwt.PyJWTError:
+        # Parse the claim inside the guard: a validly-signed token with a
+        # non-numeric user_id must fail closed as 401, not bubble up as a 500.
+        user_id = int(payload.get("user_id", 0))
+    except (jwt.PyJWTError, ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    return TokenUser(userId=int(payload.get("user_id", 0)), role=payload.get("role", ""))
+    return TokenUser(userId=user_id, role=payload.get("role", ""))
 
 
 def require_auth(creds: HTTPAuthorizationCredentials = Depends(_bearer)) -> "TokenUser":
