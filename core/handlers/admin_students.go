@@ -647,7 +647,9 @@ func AdminBulkCreateLearningPlan(c *gin.Context) {
 
 func AdminListInstructors(c *gin.Context) {
 	var instructors []models.User
-	if err := database.DB.Where("role = ?", "instructor").Order("full_name ASC").Find(&instructors).Error; err != nil {
+	// Preload Office so the office name surfaces (the RAG knowledge-sync renders
+	// it into each instructor's KB chunk).
+	if err := database.DB.Preload("Office").Where("role = ?", "instructor").Order("full_name ASC").Find(&instructors).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data instruktur"})
 		return
 	}

@@ -14,6 +14,7 @@ via a manager service account (``RAG_SERVICE_USERNAME`` / ``RAG_SERVICE_PASSWORD
 Leave those unset to disable the instructor section — the rest of the KB still
 builds (graceful degradation, consistent with the Gemini stub fallback).
 """
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -26,6 +27,8 @@ from fastapi.responses import PlainTextResponse
 from pymysql.connections import Connection
 
 from ..database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/rag", tags=["rag"])
 
@@ -142,6 +145,10 @@ def _instructor_chunks() -> list[KbChunk]:
         with httpx.Client(timeout=_GO_TIMEOUT) as cx:
             token = _service_token(cx, user, pwd)
             if not token:
+                logger.warning(
+                    "RAG instructor section omitted: service-account login to %s returned no token",
+                    GO_BACKEND_URL,
+                )
                 return []
             url = GO_BACKEND_URL + "/api/admin/instructors"
             headers = {"Authorization": f"Bearer {token}"}
@@ -152,7 +159,11 @@ def _instructor_chunks() -> list[KbChunk]:
                 resp = cx.get(url, headers=headers | {"Authorization": f"Bearer {token}"})
             resp.raise_for_status()
             rows = resp.json().get("data") or []
-    except (httpx.HTTPError, ValueError, KeyError):
+    except (httpx.HTTPError, ValueError, KeyError) as exc:
+        # Silent degradation is intentional, but log so a misconfigured service
+        # account (e.g. a non-manager → HTTP 403) is diagnosable rather than
+        # vanishing without a trace.
+        logger.warning("RAG instructor section omitted: %s", exc)
         return []
 
     chunks: list[KbChunk] = []
