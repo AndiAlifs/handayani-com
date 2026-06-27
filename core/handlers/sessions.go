@@ -77,22 +77,23 @@ func parseJSONStrings(v *string) []string {
 }
 
 // toSessionResponse builds the wire object, including the nested aiAnalysis
-// exactly as _row_to_session did: present iff any of the raw ai columns is
-// non-empty; strengths/weaknesses always arrays; upsell passed through (null
-// stays null).
+// exactly as _row_to_session did: present iff the analysis has real content;
+// strengths/weaknesses always arrays; upsell passed through (null stays null).
+// Note the emptiness test uses the *parsed* arrays — a stored empty array is
+// the JSON string "[]", which is non-empty as a raw string, so testing the raw
+// column would wrongly treat an empty analysis as present.
 func toSessionResponse(s models.Session) sessionResponse {
 	var analysis *aiAnalysis
-	hasFocus := s.AINextFocus != nil && *s.AINextFocus != ""
-	hasStrengths := s.AIStrengths != nil && *s.AIStrengths != ""
-	hasWeaknesses := s.AIWeaknesses != nil && *s.AIWeaknesses != ""
-	if hasFocus || hasStrengths || hasWeaknesses {
-		focus := ""
-		if s.AINextFocus != nil {
-			focus = *s.AINextFocus
-		}
+	focus := ""
+	if s.AINextFocus != nil {
+		focus = *s.AINextFocus
+	}
+	strengths := parseJSONStrings(s.AIStrengths)
+	weaknesses := parseJSONStrings(s.AIWeaknesses)
+	if focus != "" || len(strengths) > 0 || len(weaknesses) > 0 {
 		analysis = &aiAnalysis{
-			Strengths:            parseJSONStrings(s.AIStrengths),
-			Weaknesses:           parseJSONStrings(s.AIWeaknesses),
+			Strengths:            strengths,
+			Weaknesses:           weaknesses,
 			RecommendedNextFocus: focus,
 			UpsellRecommendation: s.AIUpsell,
 		}

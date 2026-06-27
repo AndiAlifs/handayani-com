@@ -4,7 +4,8 @@ Session CRUD (list/create/update/delete) now lives in the Go gateway; this
 service only runs the Gemini analysis and persists the result. Analyze requires
 any authenticated user. The four ai_* columns map to a nested AiAnalysis object
 on the wire (`aiAnalysis`, or null when empty) to match the Angular Session
-interface. JSON columns deserialize to Python lists via PyMySQL."""
+interface. PyMySQL returns JSON columns as JSON strings, which _as_list parses
+back into Python lists."""
 import json
 from typing import Optional
 
@@ -41,11 +42,17 @@ def _as_list(value) -> list[str]:
 
 def _row_to_session(row: dict) -> Session:
     analysis = None
-    if row["aiNextFocus"] or row["aiStrengths"] or row["aiWeaknesses"]:
+    # Gate on the parsed content, not the raw columns: a stored empty array is
+    # the string "[]", which is truthy, so testing the raw value would wrongly
+    # emit an empty aiAnalysis object instead of null.
+    focus = row["aiNextFocus"] or ""
+    strengths = _as_list(row["aiStrengths"])
+    weaknesses = _as_list(row["aiWeaknesses"])
+    if focus or strengths or weaknesses:
         analysis = AiAnalysis(
-            strengths=_as_list(row["aiStrengths"]),
-            weaknesses=_as_list(row["aiWeaknesses"]),
-            recommendedNextFocus=row["aiNextFocus"] or "",
+            strengths=strengths,
+            weaknesses=weaknesses,
+            recommendedNextFocus=focus,
             upsellRecommendation=row["aiUpsell"],
         )
     return Session(
