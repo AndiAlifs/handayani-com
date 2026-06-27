@@ -64,7 +64,22 @@ export class AuthService {
   }
 
   token(): string | null { return localStorage.getItem(this.TOKEN_KEY); }
-  isAuthenticated(): boolean { return !!this.token() && this.currentUser() !== null; }
+  isAuthenticated(): boolean {
+    const token = this.token();
+    if (!token || this.currentUser() === null) return false;
+    return !this.isTokenExpired(token);
+  }
+
+  /** True if the JWT is malformed or its exp claim is in the past. */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] ?? ''));
+      if (typeof payload.exp !== 'number') return false; // no exp → treat as non-expiring
+      return payload.exp * 1000 <= Date.now();
+    } catch {
+      return true; // malformed token → treat as expired
+    }
+  }
   isManager(): boolean { return this.currentUser()?.role === 'manager'; }
   isInstructor(): boolean { return this.currentUser()?.role === 'instructor'; }
   isSuperAdmin(): boolean { return this.isManager() && !!this.currentUser()?.isSuperAdmin; }

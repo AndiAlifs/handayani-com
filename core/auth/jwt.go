@@ -13,22 +13,25 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const defaultDevSecret = "super-secret-key-default"
-
 var warnSecretOnce sync.Once
 
 // secret resolves the JWT signing key lazily on every token operation. Reading
 // it here (rather than at package-init) ensures main()'s godotenv.Load() has
 // already populated the environment — a package-level var would be evaluated
 // before main() runs and miss a JWT_SECRET supplied only via .env.
+//
+// There is intentionally NO hardcoded fallback: a compiled-in default key is
+// public knowledge and lets anyone forge a manager token. main() fails fast
+// when JWT_SECRET is unset; this only warns to cover non-server callers (tests),
+// where signing and verification still use the same (empty) key consistently.
 func secret() []byte {
-	if s := os.Getenv("JWT_SECRET"); s != "" {
-		return []byte(s)
+	s := os.Getenv("JWT_SECRET")
+	if s == "" {
+		warnSecretOnce.Do(func() {
+			log.Println("WARNING: JWT_SECRET is not set; tokens are signed with an empty key.")
+		})
 	}
-	warnSecretOnce.Do(func() {
-		log.Println("WARNING: JWT_SECRET is not set; using the insecure dev default. Set JWT_SECRET in production.")
-	})
-	return []byte(defaultDevSecret)
+	return []byte(s)
 }
 
 type Claims struct {

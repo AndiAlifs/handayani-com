@@ -44,6 +44,8 @@ export const routes: Routes = [
       },
       {
         path: 'sesi',
+        canActivate: [roleGuard],
+        data: { roles: ['manager', 'instructor'] },
         loadComponent: () => import('./dashboard/sesi/sesi.component').then(m => m.SesiComponent)
       },
       {

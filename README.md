@@ -60,7 +60,7 @@ their comments.
  │ :4200    │   (Bearer JWT)  │  /api/mechanisms   (Epic 4, CRUD)               │
  └──────────┘                 │  /api/crm/students (manager-only CRUD)          │
    ▲                          │  /api/sessions     (CRUD)                       │
-   │ token in localStorage    │  /api/login /register /clock-in /admin/* ...    │
+   │ token in localStorage    │  /api/login /clock-in /admin/* ...              │
    │ (auth interceptor)       │  /api/auth|attendance/*  → native /api/* alias  │
    │                          │                                                 │
    │                          │  /api/sessions/{id}/analyze   ──┐                │
@@ -332,7 +332,7 @@ Base URL: `http://localhost:8080`. JSON is camelCase. Interactive docs at `/docs
 | `POST` / `PUT` / `DELETE` | `/api/crm/students[/{id}]` | manager | CRM CRUD |
 | `GET` | `/api/sessions` | any auth | List training sessions |
 | `POST` / `PUT` / `DELETE` | `/api/sessions[/{id}]` | manager | Session CRUD |
-| `POST` / `GET` | `/api/login` `/api/register`, `/api/auth/*` alias | public | Auth (issues the JWT) |
+| `POST` / `GET` | `/api/login`, `/api/auth/*` alias | public | Auth (issues the JWT). Account creation is manager-only via `/api/admin/users`. |
 | various | `/api/attendance/*` (alias), `/api/admin/*`, `/api/instructor/*` | role-gated | Attendance, manager & instructor tooling; `.xlsx` roster export |
 
 \* Course and mechanism writes are currently unauthenticated at the API layer; the dashboard gates

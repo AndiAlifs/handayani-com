@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"handayani-core/database"
@@ -40,6 +41,8 @@ func SeedSuperAdmins() {
 		{"admin_kendari", "Admin Kantor Kendari", "admin_kendari", false}, // Kendari office manager
 	}
 
+	seedPwd := os.Getenv("SEED_ADMIN_PASSWORD")
+
 	for _, admin := range admins {
 		// Check if admin user already exists
 		var existingUser models.User
@@ -50,8 +53,17 @@ func SeedSuperAdmins() {
 			continue
 		}
 
+		// Resolve the password: prefer SEED_ADMIN_PASSWORD so deployments don't
+		// ship with a guessable default super-admin credential.
+		password := admin.password
+		if seedPwd != "" {
+			password = seedPwd
+		} else {
+			log.Printf("WARNING: seeding admin '%s' with an insecure default password; set SEED_ADMIN_PASSWORD", admin.username)
+		}
+
 		// Create admin user
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(admin.password), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			log.Printf("Failed to hash password for %s: %v", admin.username, err)
 			continue

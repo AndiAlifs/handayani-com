@@ -24,42 +24,6 @@ type LoginInput struct {
 	RememberMe bool   `json:"remember_me"` // If true, session lasts 7 days
 }
 
-func Register(c *gin.Context) {
-	var input RegisterInput
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-
-	// Default role if not provided or restricted logic could go here.
-	// For simplicity, we trust the input role or default to employee in DB structure,
-	// but here we set it explicitly if needed.
-	role := input.Role
-	if role == "" {
-		role = "employee"
-	}
-
-	user := models.User{
-		Username:     input.Username,
-		FullName:     input.FullName,
-		PasswordHash: string(hashedPassword),
-		Role:         role,
-	}
-
-	if result := database.DB.Create(&user); result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists or invalid data"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
-}
-
 func Login(c *gin.Context) {
 	var input LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -92,7 +56,15 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token, "role": user.Role, "full_name": user.FullName, "username": user.Username})
+	c.JSON(http.StatusOK, gin.H{
+		"token":          token,
+		"id":             user.ID,
+		"role":           user.Role,
+		"full_name":      user.FullName,
+		"username":       user.Username,
+		"is_super_admin": user.IsSuperAdmin,
+		"office_id":      user.OfficeID,
+	})
 }
 
 func CreateUser(c *gin.Context) {

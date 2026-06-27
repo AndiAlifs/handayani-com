@@ -22,6 +22,11 @@ func main() {
 		log.Println("No .env file found, using environment variables")
 	}
 
+	// Fail fast rather than silently signing tokens with a weak/known key.
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Fatal("JWT_SECRET is required — set it in .env or the environment before starting")
+	}
+
 	database.Connect()
 
 	// Auto-migrate models
@@ -60,9 +65,11 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// Public routes
+	// Public routes. Account creation is intentionally NOT public — managers
+	// create users via the gated POST /api/admin/users (handlers.CreateUser),
+	// which forces role=employee. A public self-registration endpoint that
+	// honoured a client-supplied role allowed anonymous privilege escalation.
 	r.POST("/api/login", handlers.Login)
-	r.POST("/api/register", handlers.Register)
 
 	// Protected routes
 	protected := r.Group("/api")

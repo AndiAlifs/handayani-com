@@ -148,6 +148,7 @@ type UpdateLeaveInput struct {
 }
 
 func UpdateLeaveStatus(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
 	id := c.Param("id")
 	var input UpdateLeaveInput
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -155,9 +156,32 @@ func UpdateLeaveStatus(c *gin.Context) {
 		return
 	}
 
+	var manager models.User
+	if err := database.DB.First(&manager, userID).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Manager tidak ditemukan"})
+		return
+	}
+
 	var leave models.LeaveRequest
 	if result := database.DB.First(&leave, id); result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Leave request not found"})
+		return
+	}
+
+	// Only act on leave for a user this manager scopes (prevents cross-office IDOR).
+	var leaveUser models.User
+	if err := database.DB.First(&leaveUser, leave.UserID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Leave request not found"})
+		return
+	}
+	if !managerScopesUser(userID, manager, leaveUser) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak dapat mengubah cuti di luar kantor Anda"})
+		return
+	}
+
+	// Only pending requests can transition (mirrors UpdateClockInStatus).
+	if leave.Status != "pending" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Hanya pengajuan cuti pending yang dapat diubah"})
 		return
 	}
 
@@ -327,6 +351,12 @@ func UpdateEmployee(c *gin.Context) {
 		return
 	}
 
+	// Only act on a user the manager actually scopes (prevents cross-office IDOR).
+	if !managerScopesUser(userID, manager, user) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak dapat mengelola karyawan di luar kantor Anda"})
+		return
+	}
+
 	// Update username if provided
 	if input.Username != "" {
 		// Check if new username already exists
@@ -353,8 +383,13 @@ func UpdateEmployee(c *gin.Context) {
 		user.PasswordHash = hashedPassword
 	}
 
-	// Update role if provided
-	if input.Role != "" {
+	// Update role if provided — only super admins may change a user's role, so a
+	// regular manager cannot escalate anyone (including themselves) to manager.
+	if input.Role != "" && input.Role != user.Role {
+		if !manager.IsSuperAdmin {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Hanya super admin yang dapat mengubah peran pengguna"})
+			return
+		}
 		user.Role = input.Role
 	}
 
@@ -392,7 +427,14 @@ func UpdateEmployee(c *gin.Context) {
 }
 
 func DeleteEmployee(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
 	id := c.Param("id")
+
+	var manager models.User
+	if err := database.DB.First(&manager, userID).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Manager tidak ditemukan"})
+		return
+	}
 
 	var user models.User
 	if result := database.DB.First(&user, id); result.Error != nil {
@@ -403,6 +445,12 @@ func DeleteEmployee(c *gin.Context) {
 	// Prevent deleting managers/super admins through this endpoint
 	if user.Role == "manager" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak dapat menghapus akun manager"})
+		return
+	}
+
+	// Only act on a user the manager actually scopes (prevents cross-office IDOR).
+	if !managerScopesUser(userID, manager, user) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Anda tidak dapat menghapus karyawan di luar kantor Anda"})
 		return
 	}
 
@@ -443,6 +491,23 @@ func DeleteEmployee(c *gin.Context) {
 
 	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "Employee deleted successfully"})
+}
+
+// managerScopesUser reports whether the acting manager may manage the target
+// user: super admins can manage anyone; a regular manager only users assigned
+// to one of their offices. Mirrors the office-scoping used by the list handlers.
+func managerScopesUser(managerID uint, manager models.User, target models.User) bool {
+	if manager.IsSuperAdmin {
+		return true
+	}
+	if target.OfficeID == nil {
+		return false
+	}
+	var count int64
+	database.DB.Model(&models.ManagerOffice{}).
+		Where("manager_id = ? AND office_id = ?", managerID, *target.OfficeID).
+		Count(&count)
+	return count > 0
 }
 
 // Helper function to hash password (reused from auth.go)
@@ -539,9 +604,10 @@ func GetDailyAttendanceDashboard(c *gin.Context) {
 		attendanceMap[att.UserID] = att
 	}
 
-	// Get all today's approved leave requests
+	// Get all today's approved leave requests (pending/rejected must not count
+	// as on-leave on the dashboard).
 	var leaves []models.LeaveRequest
-	database.DB.Where("? BETWEEN start_date AND end_date", startOfDay).Find(&leaves)
+	database.DB.Where("status = ? AND ? BETWEEN start_date AND end_date", "approved", startOfDay).Find(&leaves)
 
 	// Create map for leave lookup
 	leaveMap := make(map[uint]models.LeaveRequest)

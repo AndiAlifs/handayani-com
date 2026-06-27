@@ -26,14 +26,17 @@ func WAWebhook(c *gin.Context) {
 	}
 	c.Request.Body = io.NopCloser(bytes.NewReader(raw))
 
+	// Fail closed: an unconfigured HMAC key must not leave the webhook open to
+	// forged, unauthenticated DB mutations. Reject until a key is configured.
 	key := waha.LoadConfig().HMACKey
-	if key != "" {
-		if !whatsapp.VerifyHMAC(raw, c.GetHeader("X-Webhook-Hmac"), key) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "bad hmac"})
-			return
-		}
-	} else {
-		log.Println("[whatsapp] WAHA_HMAC_KEY empty — webhook signature NOT verified")
+	if key == "" {
+		log.Println("[whatsapp] WAHA_HMAC_KEY not set — rejecting webhook; configure the key to enable it")
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "webhook not configured"})
+		return
+	}
+	if !whatsapp.VerifyHMAC(raw, c.GetHeader("X-Webhook-Hmac"), key) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "bad hmac"})
+		return
 	}
 
 	var env whatsapp.WebhookEnvelope
