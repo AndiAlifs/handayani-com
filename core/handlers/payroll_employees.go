@@ -61,8 +61,20 @@ func UpdateEmployeeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid pph21Category"})
 		return
 	}
+	if p.EmploymentType != "" && !isOneOf(p.EmploymentType, validEmploymentTyp...) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid employmentType"})
+		return
+	}
 	p.ID = id
-	if err := database.DB.Model(&models.EmployeeProfile{}).Where("id = ?", id).Updates(&p).Error; err != nil {
+	// Select the editable columns explicitly so a false IsActive (deactivation)
+	// and cleared text fields are persisted — GORM's struct-based Updates skips
+	// zero-valued fields. UserID is intentionally omitted (it is the 1:1 identity
+	// link and must not be repointed via a profile update).
+	if err := database.DB.Model(&models.EmployeeProfile{}).Where("id = ?", id).
+		Select("NIK", "NPWP", "PtkpStatus", "EmploymentType", "Pph21Category",
+			"BankName", "BankAccountNo", "BankAccountName", "BpjsKesehatanNo",
+			"BpjsTkNo", "Email", "WhatsApp", "JoinDate", "IsActive").
+		Updates(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update employee profile"})
 		return
 	}

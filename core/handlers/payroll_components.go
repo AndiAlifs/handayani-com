@@ -65,8 +65,17 @@ func UpdatePayComponent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid componentType"})
 		return
 	}
+	if pc.DefaultCalc != "" && !isOneOf(pc.DefaultCalc, validDefaultCalc...) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid defaultCalc"})
+		return
+	}
 	pc.ID = id
-	if err := database.DB.Model(&models.PayComponent{}).Where("id = ?", id).Updates(&pc).Error; err != nil {
+	// Select the editable columns explicitly so false booleans (taxable /
+	// isBpjsBase) are persisted — GORM's struct-based Updates silently skips
+	// zero-valued fields, which would make those flags impossible to turn off.
+	if err := database.DB.Model(&models.PayComponent{}).Where("id = ?", id).
+		Select("Code", "Name", "ComponentType", "Taxable", "IsBpjsBase", "DefaultCalc").
+		Updates(&pc).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update component"})
 		return
 	}
