@@ -90,7 +90,9 @@ func toSessionResponse(s models.Session) sessionResponse {
 	}
 	strengths := parseJSONStrings(s.AIStrengths)
 	weaknesses := parseJSONStrings(s.AIWeaknesses)
-	if focus != "" || len(strengths) > 0 || len(weaknesses) > 0 {
+	// An upsell-only analysis is still real content — include it in the gate so
+	// it is not silently dropped to a null aiAnalysis.
+	if focus != "" || len(strengths) > 0 || len(weaknesses) > 0 || (s.AIUpsell != nil && *s.AIUpsell != "") {
 		analysis = &aiAnalysis{
 			Strengths:            strengths,
 			Weaknesses:           weaknesses,
@@ -217,6 +219,12 @@ func UpdateSession(c *gin.Context) {
 		return
 	}
 	in.applyDefaults()
+	var count int64
+	database.DB.Model(&models.Session{}).Where("id = ?", id).Count(&count)
+	if count == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
+		return
+	}
 	// Update only the 12 non-AI columns — the ai_* columns are owned by the
 	// Python /analyze endpoint and must be preserved.
 	if err := database.DB.Model(&models.Session{}).Where("id = ?", id).Updates(map[string]interface{}{

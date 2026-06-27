@@ -48,7 +48,10 @@ def _row_to_session(row: dict) -> Session:
     focus = row["aiNextFocus"] or ""
     strengths = _as_list(row["aiStrengths"])
     weaknesses = _as_list(row["aiWeaknesses"])
-    if focus or strengths or weaknesses:
+    # An upsell-only analysis is still real content — include it in the gate so
+    # it is not silently dropped to a null aiAnalysis.
+    upsell = (row["aiUpsell"] or "").strip()
+    if focus or strengths or weaknesses or upsell:
         analysis = AiAnalysis(
             strengths=strengths,
             weaknesses=weaknesses,

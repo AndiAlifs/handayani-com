@@ -59,6 +59,12 @@ func UpdateStudentCrm(c *gin.Context) {
 		return
 	}
 	student.ID = id
+	var count int64
+	database.DB.Model(&models.StudentCrm{}).Where("id = ?", id).Count(&count)
+	if count == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Student not found"})
+		return
+	}
 	// Update the 7 writable columns; never touch created_at.
 	if err := database.DB.Model(&models.StudentCrm{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"name":           student.Name,

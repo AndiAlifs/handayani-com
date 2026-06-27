@@ -167,9 +167,11 @@ def _instructor_chunks() -> list[KbChunk]:
         return []
 
     chunks: list[KbChunk] = []
-    for r in rows:
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue  # skip a malformed row rather than 500-ing the whole sync
         name = r.get("full_name") or r.get("username") or "Instruktur"
-        office = (r.get("office") or {}).get("name") if r.get("office") else None
+        office = r.get("office").get("name") if isinstance(r.get("office"), dict) else None
         body = f"Instruktur {name} mengajar di YPA Handayani."
         if office:
             body = f"Instruktur {name} (kantor {office}) mengajar di YPA Handayani."

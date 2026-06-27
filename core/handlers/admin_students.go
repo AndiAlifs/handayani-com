@@ -201,7 +201,7 @@ func AdminAdjustStudentQuota(c *gin.Context) {
 		return
 	}
 
-	student.RemainingQuotaHours = roundTo2(input.RemainingQuotaHours)
+	student.RemainingQuotaHours = roundTo2(*input.RemainingQuotaHours)
 	if student.RemainingQuotaHours > student.TotalQuotaHours {
 		student.TotalQuotaHours = student.RemainingQuotaHours
 	}

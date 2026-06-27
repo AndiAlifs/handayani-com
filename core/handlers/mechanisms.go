@@ -51,6 +51,12 @@ func UpdateMechanism(c *gin.Context) {
 		return
 	}
 	mech.ID = id
+	var count int64
+	database.DB.Model(&models.Mechanism{}).Where("id = ?", id).Count(&count)
+	if count == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Mechanism not found"})
+		return
+	}
 	// Update only the four wire fields — never sort_order (a Save would zero it
 	// and scramble list order). A map updates only the listed columns.
 	if err := database.DB.Model(&models.Mechanism{}).Where("id = ?", id).Updates(map[string]interface{}{

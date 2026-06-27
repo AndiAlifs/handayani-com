@@ -50,9 +50,9 @@ export class CoursePricingComponent implements OnInit {
 
   getCourseImage(course: Course): string {
     if (course.category === 'Mengemudi') {
-      if (course.specifics.includes('Manual')) return 'assets/images/courses/manual.png';
-      if (course.specifics.includes('Matic')) return 'assets/images/courses/matic.png';
-      if (course.specifics.includes('Hybrid')) return 'assets/images/courses/hybrid.png';
+      if (course.specifics?.includes('Manual')) return 'assets/images/courses/manual.png';
+      if (course.specifics?.includes('Matic')) return 'assets/images/courses/matic.png';
+      if (course.specifics?.includes('Hybrid')) return 'assets/images/courses/hybrid.png';
     }
     if (course.category === 'Menjahit') return 'assets/images/courses/sewing.png';
     if (course.category === 'Komputer') return 'assets/images/courses/computer.png';

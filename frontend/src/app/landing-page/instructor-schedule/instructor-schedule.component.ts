@@ -31,7 +31,7 @@ export class InstructorScheduleComponent implements OnInit {
 
   getSlotStatus(day: string, timeSlot: string): string {
     if (!this.selectedInstructor) return '';
-    const slot = this.selectedInstructor.schedule.find(
+    const slot = this.selectedInstructor.schedule?.find(
       s => s.day === day && s.timeSlot === timeSlot
     );
     return slot?.status || 'Tersedia';

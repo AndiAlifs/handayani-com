@@ -48,6 +48,12 @@ func UpdateCourse(c *gin.Context) {
 		return
 	}
 	course.ID = id
+	var count int64
+	database.DB.Model(&models.Course{}).Where("id = ?", id).Count(&count)
+	if count == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Course not found"})
+		return
+	}
 	if err := database.DB.Save(&course).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update course"})
 		return

@@ -14,7 +14,9 @@ import (
 )
 
 type AdjustQuotaInput struct {
-	RemainingQuotaHours float64 `json:"remaining_quota_hours" binding:"required,gte=0"`
+	// Pointer so an explicit 0 is accepted: on a plain float64 the `required`
+	// rule rejects the zero value, making it impossible to zero out a quota.
+	RemainingQuotaHours *float64 `json:"remaining_quota_hours" binding:"required,gte=0"`
 }
 
 type UpdateLearningPlanInput struct {

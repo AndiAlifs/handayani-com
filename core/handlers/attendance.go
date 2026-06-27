@@ -38,6 +38,22 @@ func ClockIn(c *gin.Context) {
 		return
 	}
 
+	// Reject a second clock-in for the same day so we never create duplicate
+	// rows (which would make ClockOut/GetTodayAttendance pick an arbitrary one).
+	{
+		now := time.Now()
+		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		endOfDay := startOfDay.Add(24 * time.Hour)
+		var existing int64
+		database.DB.Model(&models.Attendance{}).
+			Where("user_id = ? AND clock_in_time >= ? AND clock_in_time < ?", userID, startOfDay, endOfDay).
+			Count(&existing)
+		if existing > 0 {
+			c.JSON(http.StatusConflict, gin.H{"error": "Anda sudah melakukan clock-in hari ini"})
+			return
+		}
+	}
+
 	if user.Role == "instructor" {
 		clockInTime := time.Now()
 		attendance := models.Attendance{
@@ -151,7 +167,7 @@ func ClockIn(c *gin.Context) {
 	minutesLate := 0
 	clockInTime := time.Now()
 
-	if closestOffice != nil && closestOffice.ClockInTime != "" {
+	if isWithinRadius && closestOffice != nil && closestOffice.ClockInTime != "" {
 		// Parse office clock-in time (format: "HH:MM")
 		officialTime, err := time.Parse("15:04", closestOffice.ClockInTime)
 		if err == nil {

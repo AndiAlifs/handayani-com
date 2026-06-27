@@ -38,6 +38,23 @@ func CreateLeaveRequest(c *gin.Context) {
 		return
 	}
 
+	if end.Before(start) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "end_date harus pada atau setelah start_date"})
+		return
+	}
+
+	// Reject a request that overlaps an existing pending/approved leave for the
+	// same user (two ranges overlap iff start <= otherEnd AND end >= otherStart).
+	var overlap int64
+	database.DB.Model(&models.LeaveRequest{}).
+		Where("user_id = ? AND status IN ? AND start_date <= ? AND end_date >= ?",
+			userID, []string{"pending", "approved"}, end, start).
+		Count(&overlap)
+	if overlap > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Anda sudah memiliki pengajuan cuti pada rentang tanggal tersebut"})
+		return
+	}
+
 	leave := models.LeaveRequest{
 		UserID:    userID,
 		StartDate: start,
@@ -63,8 +80,9 @@ func GetTodayLeave(c *gin.Context) {
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 	var leave models.LeaveRequest
-	// Find leave request where today falls between start_date and end_date
-	result := database.DB.Where("user_id = ? AND ? BETWEEN start_date AND end_date", userID, today).First(&leave)
+	// Find an APPROVED leave request where today falls between start and end —
+	// a pending/rejected request must not show the user as on leave.
+	result := database.DB.Where("user_id = ? AND status = ? AND ? BETWEEN start_date AND end_date", userID, "approved", today).First(&leave)
 
 	if result.Error != nil {
 		// No leave request for today
